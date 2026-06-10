@@ -1,0 +1,233 @@
+from db.ConexionNeo4j import ConexionNeo4j
+
+
+class Neo4jDAO:
+
+    def __init__(self):
+        self.conn = ConexionNeo4j()
+
+    def crear_constraints(self):
+        with self.conn.obtener_session() as sesion:
+            sesion.run(
+                "CREATE CONSTRAINT entrenador_id_unico IF NOT EXISTS "
+                "FOR (e:Entrenador) REQUIRE e.idEntrenador IS UNIQUE"
+            )
+            sesion.run(
+                "CREATE CONSTRAINT pokemon_id_unico IF NOT EXISTS "
+                "FOR (p:Pokemon) REQUIRE p.idPokemon IS UNIQUE"
+            )
+
+    def cargar_entrenador(self, idEntrenador, nombre, apellido, medallas):
+        consulta = """
+        MERGE (e:Entrenador {idEntrenador: $idEntrenador})
+        SET e.nombre = $nombre,
+            e.apellido = $apellido,
+            e.medallas = $medallas
+        RETURN e
+        """
+        with self.conn.obtener_session() as sesion:
+            resultado = sesion.run(
+                consulta,
+                idEntrenador=idEntrenador,
+                nombre=nombre,
+                apellido=apellido,
+                medallas=medallas,
+            )
+            registro = resultado.single()
+            return dict(registro["e"]) if registro else None
+
+    def cargar_entrenadores_masivo(self, lista_dicts):
+        consulta = """
+        UNWIND $entrenadores AS fila
+        MERGE (e:Entrenador {idEntrenador: fila.idEntrenador})
+        SET e.nombre = fila.nombre,
+            e.apellido = fila.apellido,
+            e.medallas = fila.medallas
+        RETURN count(e) AS procesados
+        """
+        with self.conn.obtener_session() as sesion:
+            resultado = sesion.run(consulta, entrenadores=lista_dicts)
+            return resultado.single()["procesados"]
+
+    def cargar_pokemon(self, idPokemon, especie, nombre, tipo, peso, altura):
+        consulta = """
+        MERGE (p:Pokemon {idPokemon: $idPokemon})
+        SET p.especie = $especie,
+            p.nombre = $nombre,
+            p.tipo = $tipo,
+            p.peso = $peso,
+            p.altura = $altura
+        RETURN p
+        """
+        with self.conn.obtener_session() as sesion:
+            resultado = sesion.run(
+                consulta,
+                idPokemon=idPokemon,
+                especie=especie,
+                nombre=nombre,
+                tipo=tipo,
+                peso=peso,
+                altura=altura,
+            )
+            registro = resultado.single()
+            return dict(registro["p"]) if registro else None
+
+    def cargar_pokemons_masivo(self, lista_dicts):
+        consulta = """
+        UNWIND $pokemons AS fila
+        MERGE (p:Pokemon {idPokemon: fila.idPokemon})
+        SET p.especie = fila.especie,
+            p.nombre = fila.nombre,
+            p.tipo = fila.tipo,
+            p.peso = fila.peso,
+            p.altura = fila.altura
+        RETURN count(p) AS procesados
+        """
+        with self.conn.obtener_session() as sesion:
+            resultado = sesion.run(consulta, pokemons=lista_dicts)
+            return resultado.single()["procesados"]
+
+    def crear_relacion_tiene(self, idEntrenador, idPokemon, en_equipo):
+        consulta = """
+        MATCH (e:Entrenador {idEntrenador: $idEntrenador})
+        MATCH (p:Pokemon {idPokemon: $idPokemon})
+        MERGE (e)-[r:TIENE]->(p)
+        SET r.en_equipo = $en_equipo
+        RETURN r
+        """
+        with self.conn.obtener_session() as sesion:
+            resultado = sesion.run(
+                consulta,
+                idEntrenador=idEntrenador,
+                idPokemon=idPokemon,
+                en_equipo=en_equipo,
+            )
+            return resultado.single() is not None
+
+    def crear_relaciones_tiene_masivo(self, lista_dicts):
+        consulta = """
+        UNWIND $relaciones AS fila
+        MATCH (e:Entrenador {idEntrenador: fila.idEntrenador})
+        MATCH (p:Pokemon {idPokemon: fila.idPokemon})
+        MERGE (e)-[r:TIENE]->(p)
+        SET r.en_equipo = fila.en_equipo
+        RETURN count(r) AS procesadas
+        """
+        with self.conn.obtener_session() as sesion:
+            resultado = sesion.run(consulta, relaciones=lista_dicts)
+            return resultado.single()["procesadas"]
+
+    def crear_amistad(self, id1, id2):
+        consulta = """
+        MATCH (a:Entrenador {idEntrenador: $id_menor})
+        MATCH (b:Entrenador {idEntrenador: $id_mayor})
+        MERGE (a)-[r:ES_AMIGO_DE]->(b)
+        RETURN r
+        """
+        id_menor, id_mayor = sorted([id1, id2])
+        with self.conn.obtener_session() as sesion:
+            resultado = sesion.run(consulta, id_menor=id_menor, id_mayor=id_mayor)
+            return resultado.single() is not None
+
+    def crear_rivalidad(self, id1, id2):
+        consulta = """
+        MATCH (a:Entrenador {idEntrenador: $id_menor})
+        MATCH (b:Entrenador {idEntrenador: $id_mayor})
+        MERGE (a)-[r:ES_RIVAL_DE]->(b)
+        RETURN r
+        """
+        id_menor, id_mayor = sorted([id1, id2])
+        with self.conn.obtener_session() as sesion:
+            resultado = sesion.run(consulta, id_menor=id_menor, id_mayor=id_mayor)
+            return resultado.single() is not None
+
+    def obtener_entrenador(self, idEntrenador):
+        consulta = """
+        MATCH (e:Entrenador {idEntrenador: $idEntrenador})
+        RETURN e
+        """
+        with self.conn.obtener_session() as sesion:
+            resultado = sesion.run(consulta, idEntrenador=idEntrenador)
+            registro = resultado.single()
+            return dict(registro["e"]) if registro else None
+
+    def obtener_pokemons_de(self, idEntrenador):
+        consulta = """
+        MATCH (e:Entrenador {idEntrenador: $idEntrenador})-[r:TIENE]->(p:Pokemon)
+        RETURN p, r.en_equipo AS en_equipo
+        ORDER BY p.idPokemon
+        """
+        with self.conn.obtener_session() as sesion:
+            resultado = sesion.run(consulta, idEntrenador=idEntrenador)
+            pokemons = []
+            for registro in resultado:
+                pokemon = dict(registro["p"])
+                pokemon["en_equipo"] = registro["en_equipo"]
+                pokemons.append(pokemon)
+            return pokemons
+
+    def obtener_equipo_activo(self, idEntrenador):
+        consulta = """
+        MATCH (e:Entrenador {idEntrenador: $idEntrenador})-[r:TIENE]->(p:Pokemon)
+        WHERE r.en_equipo = true
+        RETURN p
+        ORDER BY p.idPokemon
+        """
+        with self.conn.obtener_session() as sesion:
+            resultado = sesion.run(consulta, idEntrenador=idEntrenador)
+            return [dict(registro["p"]) for registro in resultado]
+
+    def obtener_amigos(self, idEntrenador):
+        consulta = """
+        MATCH (e:Entrenador {idEntrenador: $idEntrenador})-[:ES_AMIGO_DE]-(amigo:Entrenador)
+        RETURN amigo
+        ORDER BY amigo.idEntrenador
+        """
+        with self.conn.obtener_session() as sesion:
+            resultado = sesion.run(consulta, idEntrenador=idEntrenador)
+            return [dict(registro["amigo"]) for registro in resultado]
+
+    def obtener_rivales(self, idEntrenador):
+        consulta = """
+        MATCH (e:Entrenador {idEntrenador: $idEntrenador})-[:ES_RIVAL_DE]-(rival:Entrenador)
+        RETURN rival
+        ORDER BY rival.idEntrenador
+        """
+        with self.conn.obtener_session() as sesion:
+            resultado = sesion.run(consulta, idEntrenador=idEntrenador)
+            return [dict(registro["rival"]) for registro in resultado]
+
+    def recomendar_amigos(self, idEntrenador):
+        consulta = """
+        MATCH (yo:Entrenador {idEntrenador: $idEntrenador})-[:ES_AMIGO_DE]-(amigo:Entrenador)
+              -[:ES_AMIGO_DE]-(candidato:Entrenador)
+        WHERE candidato.idEntrenador <> $idEntrenador
+          AND NOT (yo)-[:ES_AMIGO_DE]-(candidato)
+        RETURN candidato, count(DISTINCT amigo) AS amigos_en_comun
+        ORDER BY amigos_en_comun DESC, candidato.idEntrenador
+        """
+        with self.conn.obtener_session() as sesion:
+            resultado = sesion.run(consulta, idEntrenador=idEntrenador)
+            recomendaciones = []
+            for registro in resultado:
+                candidato = dict(registro["candidato"])
+                candidato["amigos_en_comun"] = registro["amigos_en_comun"]
+                recomendaciones.append(candidato)
+            return recomendaciones
+
+    def contar_pokemons_por_entrenador(self):
+        consulta = """
+        MATCH (e:Entrenador)
+        OPTIONAL MATCH (e)-[:TIENE]->(p:Pokemon)
+        RETURN e.idEntrenador AS idEntrenador,
+               e.nombre AS nombre,
+               count(p) AS cantidad
+        ORDER BY cantidad DESC, e.idEntrenador
+        """
+        with self.conn.obtener_session() as sesion:
+            resultado = sesion.run(consulta)
+            return [registro.data() for registro in resultado]
+
+    def limpiar_base(self):
+        with self.conn.obtener_session() as sesion:
+            sesion.run("MATCH (n) DETACH DELETE n")
