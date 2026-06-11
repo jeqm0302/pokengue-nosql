@@ -67,7 +67,8 @@ instance/
 
 # Scrapy stuff:
 .scrapy
-
+pokengueCredentials.json
+venv/
 # Sphinx documentation
 docs/_build/
 

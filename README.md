@@ -1,7 +1,7 @@
 # Pokengue
 Crear Proyecto:
 
-git clone https://github.com/francisco2910/Famedic
+git clone https://github.com/francisco2910/Pokengue
 
 python -m venv venv
 

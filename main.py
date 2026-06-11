@@ -1,21 +1,27 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template,url_for, session, redirect, request, jsonify
 from pokeapi import get_pokemon, get_lista_pokemons
 from DAO.Neo4jDAO import Neo4jDAO
 
 app = Flask(__name__)
 neo4j_dao = Neo4jDAO()
+from sheets import get_entrenadores, get_pokemons_domesticados
+from pymongo import MongoClient
+
+app = Flask(__name__)
+
+client = MongoClient("mongodb://localhost:27017/")
+db     = client["pokengue"]
 
 @app.route("/")
 def index():
     return render_template("index.html")
-
 
 @app.route("/pokemon/<nombre_o_id>")
 def pokemon(nombre_o_id):
     """Devuelve los datos de un Pokémon en JSON."""
     data = get_pokemon(nombre_o_id.lower())
     if data is None:
-        return jsonify({"error": f"Pokemon '{nombre_o_id}' no encontrado"}), 404
+        return jsonify({"error": f"Pokémon '{nombre_o_id}' no encontrado"}), 404
     return jsonify(data)
 
 
@@ -222,6 +228,57 @@ def neo4j_estado():
         return jsonify({"ok": False, "data": None,
                         "mensaje": f"Error al obtener estado del grafo: {e}"})
 
+@app.route("/pokedex")
+def cargar_pokedex():
+    """Vacía la colección pokedex y la recarga con todos los pokémons de la PokeAPI."""
+    data = get_lista_pokemons()
+    if data is None:
+        return jsonify({"error": "No se pudo obtener la lista de pokémons"}), 500
+
+    pokedex = db["pokedex"]
+    pokedex.drop()
+
+    pokemons = data["pokemons"]
+    if pokemons:
+        pokedex.insert_many(pokemons)
+
+    return redirect("/entrenadores")
+
+@app.route("/entrenadores")
+def cargar_entrenadores():
+    """Vacía la colección entrenador y la recarga desde Google Sheets."""
+    try:
+        entrenadores = get_entrenadores()
+    except Exception as e:
+        return jsonify({"error": f"Error al leer el Sheet: {str(e)}"}), 500
+
+    if not entrenadores:
+        return jsonify({"error": "No se encontraron entrenadores en el Sheet"}), 404
+
+    coleccion = db["entrenador"]
+    coleccion.drop()
+    coleccion.insert_many(entrenadores)
+
+    return redirect("/pokemons")
+
+@app.route("/pokemons")
+def cargar_pokemons_domesticados():
+    """Vacía la colección pokemons y la recarga desde Google Sheets."""
+    try:
+        pokemons = get_pokemons_domesticados()
+    except Exception as e:
+        return jsonify({"error": f"Error al leer el Sheet: {str(e)}"}), 500
+
+    if not pokemons:
+        return jsonify({"error": "No se encontraron pokémons en el Sheet"}), 404
+
+    coleccion = db["pokemons"]
+    coleccion.drop()
+    coleccion.insert_many(pokemons)
+
+    return jsonify({
+        "mensaje": "Datos cargados correctamente."
+    })
 
 if __name__ == "__main__":
     app.run(debug=True)
