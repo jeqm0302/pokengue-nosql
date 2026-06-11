@@ -228,6 +228,19 @@ class Neo4jDAO:
             resultado = sesion.run(consulta)
             return [registro.data() for registro in resultado]
 
+    def contar_estado_general(self):
+        consulta = """
+        CALL { MATCH (e:Entrenador) RETURN count(e) AS entrenadores }
+        CALL { MATCH (p:Pokemon) RETURN count(p) AS pokemons }
+        CALL { MATCH ()-[r:TIENE]->() RETURN count(r) AS tiene }
+        CALL { MATCH ()-[r:ES_AMIGO_DE]->() RETURN count(r) AS amistades }
+        CALL { MATCH ()-[r:ES_RIVAL_DE]->() RETURN count(r) AS rivalidades }
+        RETURN entrenadores, pokemons, tiene, amistades, rivalidades
+        """
+        with self.conn.obtener_session() as sesion:
+            resultado = sesion.run(consulta)
+            return resultado.single().data()
+
     def limpiar_base(self):
         with self.conn.obtener_session() as sesion:
             sesion.run("MATCH (n) DETACH DELETE n")

@@ -141,6 +141,18 @@
       from { opacity: 0; transform: translateY(-20px); }
       to   { opacity: 1; transform: translateY(0); }
     }
+
+    /* La tarjeta de Neo4j es un link a la demo (las demás siguen siendo divs) */
+    a.db-card { text-decoration: none; color: inherit; cursor: pointer; display: block; }
+    .demo-cta {
+      margin-top: 0.6rem;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.45rem;
+      color: var(--red);
+      letter-spacing: 0.5px;
+      transition: color 0.2s;
+    }
+    .db-card.neo4j:hover .demo-cta { color: var(--yellow); }
   </style>
 </head>
 <body>
@@ -155,11 +167,12 @@
         <div class="db-name">MongoDB</div>
         <div class="db-desc">Datos generales de Pokémon</div>
       </div>
-      <div class="db-card neo4j">
+      <a href="/neo4j" class="db-card neo4j">
         <div class="db-icon">🕸️</div>
         <div class="db-name">Neo4J</div>
         <div class="db-desc">Relaciones y evoluciones</div>
-      </div>
+        <div class="demo-cta">VER DEMO →</div>
+      </a>
       <div class="db-card cass">
         <div class="db-icon">💎</div>
         <div class="db-name">Cassandra</div>
