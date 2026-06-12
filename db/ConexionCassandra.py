@@ -24,11 +24,10 @@ class ConexionCassandra:
     def inicializarConexion(self):
         if self._cluster is None:
             return self.conectar();
-        return self._cluster;
+        return self._sesion;
 
     def cerrar(self):
         if self._cluster:
             self._cluster.shutdown();
-            
             self._sesion = None;
             self._cluster = None;

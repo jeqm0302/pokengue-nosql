@@ -1,6 +1,7 @@
 from flask import Flask, render_template,url_for, session, redirect, request, jsonify
 from pokeapi import get_pokemon, get_lista_pokemons
 from services.Neo4jService import Neo4jService
+from DAO.CassandraDAO import CassandraDAO
 from DAO.RedisDAO import RedisDAO
 
 app = Flask(__name__)
@@ -13,6 +14,8 @@ app = Flask(__name__)
 
 client = MongoClient("mongodb://localhost:27017/")
 db     = client["pokengue"]
+
+cassandra_dao = CassandraDAO()
 
 @app.route("/")
 def index():
@@ -88,6 +91,16 @@ def neo4j_recomendar(id):
 def neo4j_estado():
     resultado = neo4j_service.obtener_estado()
     return jsonify(resultado)
+
+"""
+@app.route("/cassandra/combate", methods=["POST"])
+def cassandra_registrar_combate():
+    try:
+        combate_id = cassandra_dao.prueba1()
+        return jsonify({"ok": True, "data": {"combate_id": combate_id}, "mensaje": "Combate registrado en Cassandra"})
+    except Exception as e:
+        return jsonify({"ok": False, "data": None, "mensaje": str(e)}), 500
+"""
 
 @app.route("/pokedex")
 def cargar_pokedex():
