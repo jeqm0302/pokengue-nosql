@@ -159,7 +159,7 @@
       letter-spacing: 0.5px;
       transition: transform 0.15s, box-shadow 0.15s;
     }
-    button:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(238,21,21,0.5); }
+    button:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(238,21,21,0.5), 0 0 20px rgba(227, 53, 13, 0.5); }
     button:active { transform: translateY(0); }
 
     /* ---------- Resultados ---------- */
@@ -211,9 +211,65 @@
     .item { margin-left: 0.8rem; }
     .muted { color: #999; }
     .num { color: var(--orange); font-weight: 700; }
+
+    .estado-neo4j {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 0.95rem;
+        padding: 12px 22px;
+        border-radius: 999px;
+        background: rgba(0,0,0,0.6);
+        border: 2px solid #9aa0a6;
+        color: #d0d4d9;
+        opacity: 0;
+        animation: fadeInBadge 0.6s 0.3s ease-out forwards;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+        transition: border-color 0.3s, color 0.3s;
+    }
+
+    @keyframes fadeInBadge {
+        from { opacity: 0; transform: translateY(-10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .estado-neo4j.ok {
+        border-color: #22c55e;
+        color: #4ade80;
+        animation: fadeInBadge 0.6s 0.3s ease-out forwards, brillo-ok 2s ease-in-out 1s infinite;
+    }
+
+    @keyframes brillo-ok {
+        0%, 100% { box-shadow: 0 4px 16px rgba(34, 197, 94, 0.2); }
+        50%      { box-shadow: 0 4px 24px rgba(34, 197, 94, 0.6); }
+    }
+
+    .estado-neo4j.error {
+        border-color: #ef4444;
+        color: #f87171;
+        animation: fadeInBadge 0.6s 0.3s ease-out forwards, brillo-error 2s ease-in-out 1s infinite;
+    }
+
+    @keyframes brillo-error {
+        0%, 100% { box-shadow: 0 4px 16px rgba(239, 68, 68, 0.2); }
+        50%      { box-shadow: 0 4px 24px rgba(239, 68, 68, 0.6); }
+    }
+
+    .estado-neo4j.cambio {
+        animation: destello-cambio 1s ease-out;
+    }
+
+    @keyframes destello-cambio {
+        0%   { transform: scale(1); }
+        20%  { transform: scale(1.15); box-shadow: 0 0 30px currentColor; }
+        100% { transform: scale(1); }
+    }
   </style>
 </head>
 <body>
+  <div id="estadoNeo4j" class="estado-neo4j">⏳ Neo4j…</div>
   <div class="wrap">
     <!-- Header -->
     <header>
@@ -231,12 +287,12 @@
         <div class="card">
           <h3>👤 Agregar Entrenador</h3>
           <form onsubmit="cargarEntrenador(event)">
-            <input type="text" id="ent_id" placeholder="ID (ej: ENT-005)" required />
+            <input type="text" id="ent_id" placeholder="Identificador (ejemplo: ENT-005)" required />
             <div class="row2">
               <input type="text" id="ent_nombre" placeholder="Nombre" />
               <input type="text" id="ent_apellido" placeholder="Apellido" />
             </div>
-            <input type="text" id="ent_medallas" placeholder="Medallas (coma: Roca, Cascada)" />
+            <input type="text" id="ent_medallas" placeholder="Medallas (separadas por coma: Roca, Cascada)" />
             <button type="submit">CREAR ENTRENADOR</button>
           </form>
         </div>
@@ -244,15 +300,15 @@
         <div class="card">
           <h3>🐉 Agregar Pokémon</h3>
           <form onsubmit="cargarPokemon(event)">
-            <input type="text" id="pok_id" placeholder="ID (ej: POK-025)" required />
+            <input type="text" id="pok_id" placeholder="Identificador (ejemplo: POK-025)" required />
             <div class="row2">
               <input type="text" id="pok_especie" placeholder="Especie" />
               <input type="text" id="pok_nombre" placeholder="Nombre" />
             </div>
-            <input type="text" id="pok_tipo" placeholder="Tipo (coma: Fuego, Volador)" />
+            <input type="text" id="pok_tipo" placeholder="Tipo (separados por coma: Fuego, Volador)" />
             <div class="row2">
-              <input type="number" step="any" id="pok_peso" placeholder="Peso (kg)" />
-              <input type="number" step="any" id="pok_altura" placeholder="Altura (m)" />
+              <input type="number" step="any" id="pok_peso" placeholder="Peso en kilogramos" />
+              <input type="number" step="any" id="pok_altura" placeholder="Altura en metros" />
             </div>
             <button type="submit">CREAR POKÉMON</button>
           </form>
@@ -262,8 +318,8 @@
           <h3>🔗 Relación TIENE</h3>
           <form onsubmit="crearTiene(event)">
             <div class="row2">
-              <input type="text" id="tiene_ent" placeholder="ID entrenador" required />
-              <input type="text" id="tiene_pok" placeholder="ID pokémon" required />
+              <input type="text" id="tiene_ent" placeholder="Identificador del entrenador" required />
+              <input type="text" id="tiene_pok" placeholder="Identificador del pokémon" required />
             </div>
             <div class="check-row">
               <input type="checkbox" id="tiene_equipo" />
@@ -281,9 +337,9 @@
           <h3>🤝 Crear amistad</h3>
           <form onsubmit="crearAmistad(event)">
             <label>Entrenador 1</label>
-            <input type="text" id="ami_1" placeholder="ID (ej: ENT-001)" required />
+            <input type="text" id="ami_1" placeholder="Identificador (ejemplo: ENT-001)" required />
             <label>Entrenador 2</label>
-            <input type="text" id="ami_2" placeholder="ID (ej: ENT-004)" required />
+            <input type="text" id="ami_2" placeholder="Identificador (ejemplo: ENT-004)" required />
             <button type="submit">HACER AMIGOS</button>
           </form>
         </div>
@@ -294,17 +350,17 @@
         <div class="col-title">▸ CONSULTAS</div>
 
         <div class="card">
-          <h3>🔎 Info completa de entrenador</h3>
+          <h3>🔎 Información completa de entrenador</h3>
           <form onsubmit="verInfo(event)">
-            <input type="text" id="info_id" placeholder="ID (ej: ENT-001)" required />
-            <button type="submit">VER INFO</button>
+            <input type="text" id="info_id" placeholder="Identificador (ejemplo: ENT-001)" required />
+            <button type="submit">VER INFORMACIÓN</button>
           </form>
         </div>
 
         <div class="card">
           <h3>💡 Recomendar amigos</h3>
           <form onsubmit="recomendar(event)">
-            <input type="text" id="rec_id" placeholder="ID (ej: ENT-004)" required />
+            <input type="text" id="rec_id" placeholder="Identificador (ejemplo: ENT-004)" required />
             <button type="submit">RECOMENDAR</button>
           </form>
         </div>
@@ -319,12 +375,61 @@
     <!-- Área de resultados -->
     <div class="results-title">▸ RESULTADOS</div>
     <div id="resultado">
-      <span class="placeholder">Los resultados de cada operación aparecen acá. Cargá un dato y verificalo en Neo4j Desktop. ⚡</span>
+      <span class="placeholder">Los resultados de cada operación aparecerán aquí. Cargá un dato desde los formularios y luego verificalo en Neo4j Desktop. ⚡</span>
     </div>
   </div>
 
   <script>
     "use strict";
+
+    (function () {
+        const el = document.getElementById('estadoNeo4j');
+        let estadoAnterior = null;
+
+        async function consultarEstado() {
+            try {
+                const resp = await fetch('/neo4j/estado');
+                const r = await resp.json();
+                const nuevoEstado = r.ok ? 'ok' : 'error';
+                const texto = r.ok ? '🟢 Neo4j conectado' : '🔴 Neo4j desconectado';
+
+                if (estadoAnterior !== null && estadoAnterior !== nuevoEstado) {
+                    el.classList.add('cambio');
+                    setTimeout(() => el.classList.remove('cambio'), 1000);
+                }
+
+                el.textContent = texto;
+                el.classList.remove('ok', 'error');
+                el.classList.add(nuevoEstado);
+                estadoAnterior = nuevoEstado;
+            } catch (e) {
+                const nuevoEstado = 'error';
+                if (estadoAnterior !== null && estadoAnterior !== nuevoEstado) {
+                    el.classList.add('cambio');
+                    setTimeout(() => el.classList.remove('cambio'), 1000);
+                }
+                el.textContent = '🔴 Neo4j desconectado';
+                el.classList.remove('ok');
+                el.classList.add('error');
+                estadoAnterior = nuevoEstado;
+            }
+        }
+
+        consultarEstado();
+
+        let intervalId = setInterval(consultarEstado, 5000);
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                clearInterval(intervalId);
+                intervalId = null;
+            } else if (intervalId === null) {
+                consultarEstado();
+                intervalId = setInterval(consultarEstado, 5000);
+            }
+        });
+    })();
+
     const caja = document.getElementById("resultado");
 
     // Escapa texto del usuario para inyectarlo seguro en HTML

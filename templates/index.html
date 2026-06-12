@@ -249,6 +249,7 @@
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
       opacity: 0;
       animation: fadeInBadge 0.6s 0.3s ease-out forwards;
+      transition: border-color 0.3s, color 0.3s;
     }
     @keyframes fadeInBadge {
       from { opacity: 0; transform: translateY(-10px); }
@@ -269,6 +270,14 @@
     @keyframes brillo-error {
       0%, 100% { box-shadow: 0 4px 16px rgba(239, 68, 68, 0.2); }
       50%      { box-shadow: 0 4px 24px rgba(239, 68, 68, 0.6); }
+    }
+    .estado-neo4j.cambio {
+      animation: destello-cambio 1s ease-out;
+    }
+    @keyframes destello-cambio {
+      0%   { transform: scale(1); }
+      20%  { transform: scale(1.15); box-shadow: 0 0 30px currentColor; }
+      100% { transform: scale(1); }
     }
   </style>
 </head>
@@ -310,22 +319,52 @@
   <div id="estadoNeo4j" class="estado-neo4j">⏳ Neo4j…</div>
 
   <script>
-    (async function () {
-      const el = document.getElementById('estadoNeo4j');
-      try {
-        const resp = await fetch('/neo4j/estado');
-        const r = await resp.json();
-        if (r.ok) {
-          el.textContent = '🟢 Neo4j conectado';
-          el.classList.add('ok');
-        } else {
-          el.textContent = '🔴 Neo4j desconectado';
-          el.classList.add('error');
+    (function () {
+        const el = document.getElementById('estadoNeo4j');
+        let estadoAnterior = null;
+
+        async function consultarEstado() {
+            try {
+                const resp = await fetch('/neo4j/estado');
+                const r = await resp.json();
+                const nuevoEstado = r.ok ? 'ok' : 'error';
+                const texto = r.ok ? '🟢 Neo4j conectado' : '🔴 Neo4j desconectado';
+
+                if (estadoAnterior !== null && estadoAnterior !== nuevoEstado) {
+                    el.classList.add('cambio');
+                    setTimeout(() => el.classList.remove('cambio'), 1000);
+                }
+
+                el.textContent = texto;
+                el.classList.remove('ok', 'error');
+                el.classList.add(nuevoEstado);
+                estadoAnterior = nuevoEstado;
+            } catch (e) {
+                const nuevoEstado = 'error';
+                if (estadoAnterior !== null && estadoAnterior !== nuevoEstado) {
+                    el.classList.add('cambio');
+                    setTimeout(() => el.classList.remove('cambio'), 1000);
+                }
+                el.textContent = '🔴 Neo4j desconectado';
+                el.classList.remove('ok');
+                el.classList.add('error');
+                estadoAnterior = nuevoEstado;
+            }
         }
-      } catch (e) {
-        el.textContent = '🔴 Neo4j desconectado';
-        el.classList.add('error');
-      }
+
+        consultarEstado();
+
+        let intervalId = setInterval(consultarEstado, 5000);
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                clearInterval(intervalId);
+                intervalId = null;
+            } else if (intervalId === null) {
+                consultarEstado();
+                intervalId = setInterval(consultarEstado, 5000);
+            }
+        });
     })();
   </script>
 </body>
