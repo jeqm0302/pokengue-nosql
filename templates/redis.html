@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Redis — Configuración de entrenadores</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --red: #E3350D;
+      --orange: #ee1515;
+      --dark: #1a1a2e;
+      --yellow: #FFCB05;
+      --blue: #3B4CCA;
+      --white: #f5f5f5;
+      --card-bg: rgba(22, 33, 62, 0.85);
+      --ok: #5fd66b;
+      --err: #ff7a5c;
+      /* Acento propio de esta página: rojo Redis */
+      --redis: #D82C20;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: var(--dark);
+      color: var(--white);
+      font-family: 'Nunito', sans-serif;
+      min-height: 100vh;
+      padding: 0.8rem 1.2rem 1.2rem;
+      position: relative;
+    }
+
+    /* Fondo con degradados radiales (igual estética que index y neo4j) */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at 20% 50%, rgba(59,76,202,0.15) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 20%, rgba(216,44,32,0.20) 0%, transparent 60%);
+      z-index: 0;
+    }
+
+    .wrap { position: relative; z-index: 1; max-width: 1300px; margin: 0 auto; }
+
+    /* ---------- Header ---------- */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .back {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.6rem;
+      color: var(--yellow);
+      text-decoration: none;
+      border: 2px solid rgba(255,203,5,0.4);
+      padding: 0.5rem 0.7rem;
+      border-radius: 8px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .back:hover { background: var(--yellow); color: var(--dark); }
+
+    .pokeball {
+      width: 46px; height: 46px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, var(--redis) 50%, var(--white) 50%);
+      border: 3px solid #111;
+      position: relative;
+      flex-shrink: 0;
+      animation: float 3s ease-in-out infinite;
+      box-shadow: 0 0 20px rgba(216,44,32,0.45);
+    }
+    .pokeball::before {
+      content: ''; position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%; height: 3px; background: #111;
+    }
+    .pokeball::after {
+      content: ''; position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--white); border: 3px solid #111;
+    }
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+
+    header h1 {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 1.1rem;
+      color: var(--yellow);
+      text-shadow: 2px 2px 0 var(--redis), -1px -1px 0 #111;
+      letter-spacing: 1px;
+      line-height: 1.5;
+    }
+
+    /* ---------- Columnas ---------- */
+    .cols {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .col-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.6rem;
+      color: var(--orange);
+      margin-bottom: 0.6rem;
+      letter-spacing: 1px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid rgba(216,44,32,0.4);
+      border-radius: 10px;
+      padding: 0.8rem;
+      margin-bottom: 0.8rem;
+    }
+    .card h3 {
+      font-size: 0.85rem;
+      color: var(--yellow);
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+
+    label { display: block; font-size: 0.7rem; color: #bbb; margin: 0.35rem 0 0.15rem; }
+
+    input[type="text"], select {
+      width: 100%;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(216,44,32,0.45);
+      border-radius: 6px;
+      color: var(--white);
+      padding: 0.4rem 0.5rem;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.8rem;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 0.35rem;
+    }
+    input:focus, select:focus { border-color: var(--yellow); }
+    select option { background: var(--dark); }
+
+    .check-row { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
+    .check-row input { width: 16px; height: 16px; accent-color: var(--redis); }
+    .check-row label { margin: 0; font-size: 0.72rem; }
+
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+
+    button {
+      width: 100%;
+      margin-top: 0.6rem;
+      background: linear-gradient(180deg, var(--redis) 50%, #a31e15 50%);
+      color: var(--white);
+      border: 2px solid #111;
+      border-radius: 20px;
+      padding: 0.45rem;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.55rem;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    button:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(216,44,32,0.55); }
+    button:active { transform: translateY(0); }
+    button.danger { background: linear-gradient(180deg, #555 50%, #333 50%); }
+    button.danger:hover { box-shadow: 0 4px 14px rgba(255,122,92,0.45); }
+
+    /* ---------- Resultados ---------- */
+    .results-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.6rem;
+      color: var(--orange);
+      margin-bottom: 0.5rem;
+    }
+    #resultado {
+      background: rgba(0,0,0,0.55);
+      border: 2px solid rgba(216,44,32,0.55);
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+      height: 230px;
+      overflow-y: auto;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+    #resultado::-webkit-scrollbar { width: 8px; }
+    #resultado::-webkit-scrollbar-thumb { background: var(--redis); border-radius: 4px; }
+
+    .placeholder { color: #777; font-style: italic; }
+
+    .id-big {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 1.4rem;
+      color: var(--yellow);
+      text-shadow: 2px 2px 0 var(--redis);
+      letter-spacing: 1px;
+      display: inline-block;
+      margin: 0.3rem 0;
+    }
+    .ok-line { color: var(--ok); font-weight: 700; }
+    .err-line { color: var(--err); font-weight: 700; font-size: 1rem; }
+    .hint {
+      display: block;
+      margin-top: 0.5rem;
+      color: #88c0ff;
+      font-family: 'Nunito', monospace;
+      font-size: 0.78rem;
+      background: rgba(0,0,0,0.4);
+      padding: 0.4rem 0.6rem;
+      border-radius: 6px;
+      word-break: break-all;
+    }
+    .section-h { color: var(--yellow); font-weight: 700; margin-top: 0.6rem; }
+    .item { margin-left: 0.8rem; }
+    .muted { color: #999; }
+    .num { color: var(--orange); font-weight: 700; }
+
+    /* Chips de preferencias en los resultados */
+    .chip {
+      display: inline-block;
+      background: rgba(216,44,32,0.25);
+      border: 1px solid rgba(216,44,32,0.5);
+      border-radius: 12px;
+      padding: 0.05rem 0.55rem;
+      font-size: 0.75rem;
+      margin: 0.1rem 0.15rem 0.1rem 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- Header -->
+    <header>
+      <a class="back" href="/">← Volver</a>
+      <div class="pokeball"></div>
+      <h1>Redis — Configuración de entrenadores</h1>
+    </header>
+
+    <!-- 3 columnas -->
+    <div class="cols">
+      <!-- Columna 1: Guardar configuración -->
+      <div>
+        <div class="col-title">▸ GUARDAR CONFIGURACIÓN</div>
+
+        <div class="card">
+          <h3>⚙️ Crear / actualizar entrenador</h3>
+          <form onsubmit="guardarConfig(event)">
+            <input type="text" id="cfg_id" placeholder="ID (ej: ENT-001)" required />
+            <div class="row2">
+              <input type="text" id="cfg_nombre" placeholder="Nombre" />
+              <input type="text" id="cfg_apellido" placeholder="Apellido" />
+            </div>
+            <input type="text" id="cfg_medallas" placeholder="Medallas (coma: Trueno, Alma)" />
+            <div class="row2">
+              <input type="text" id="cfg_idioma" placeholder="Idioma (ej: Inglés)" />
+              <select id="cfg_tema">
+                <option value="">Tema…</option>
+                <option value="dark">dark</option>
+                <option value="white">white</option>
+              </select>
+            </div>
+            <div class="check-row">
+              <input type="checkbox" id="cfg_notif" />
+              <label for="cfg_notif">Notificaciones activadas</label>
+            </div>
+            <button type="submit">GUARDAR EN REDIS</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Columna 2: Gestión por ID -->
+      <div>
+        <div class="col-title">▸ GESTIÓN POR ID</div>
+
+        <div class="card">
+          <h3>🔎 Ver configuración</h3>
+          <form onsubmit="verConfig(event)">
+            <input type="text" id="ver_id" placeholder="ID (ej: ENT-001)" required />
+            <button type="submit">VER CONFIG</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h3>🗑️ Eliminar configuración</h3>
+          <form onsubmit="eliminarConfig(event)">
+            <input type="text" id="del_id" placeholder="ID (ej: ENT-100)" required />
+            <button type="submit" class="danger">ELIMINAR</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Columna 3: Consultas con índices -->
+      <div>
+        <div class="col-title">▸ CONSULTAS (ÍNDICES)</div>
+
+        <div class="card">
+          <h3>🧲 Buscar por preferencias</h3>
+          <form onsubmit="buscar(event)">
+            <input type="text" id="bus_idioma" placeholder="Idioma (ej: Japonés)" />
+            <div class="row2">
+              <select id="bus_tema">
+                <option value="">Tema…</option>
+                <option value="dark">dark</option>
+                <option value="white">white</option>
+              </select>
+              <select id="bus_notif">
+                <option value="">Notif…</option>
+                <option value="true">true</option>
+                <option value="false">false</option>
+              </select>
+            </div>
+            <input type="text" id="bus_medalla" placeholder="Medalla (ej: Trueno)" />
+            <button type="submit">BUSCAR</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h3>📊 Estado de la base</h3>
+          <button type="button" onclick="verEstado()">VER ESTADO GENERAL</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Área de resultados -->
+    <div class="results-title">▸ RESULTADOS</div>
+    <div id="resultado">
+      <span class="placeholder">Los resultados de cada operación aparecen acá. Probá una consulta y verificala con redis-cli. ⚡</span>
+    </div>
+  </div>
+
+  <script>
+    "use strict";
+    const caja = document.getElementById("resultado");
+
+    function esc(t) {
+      if (t === null || t === undefined) return "";
+      return String(t)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function mostrar(html) { caja.innerHTML = html; caja.scrollTop = 0; }
+
+    function mostrarError(mensaje) {
+      mostrar(`<div class="err-line">⚠️ ${esc(mensaje)}</div>`);
+    }
+
+    // Pinta una config como línea de resultado
+    function lineaConfig(c) {
+      return `<div class="item">• <b>${esc(c.nombre)} ${esc(c.apellido)}</b> `
+           + `(<span class="num">${esc(c.idEntrenador)}</span>) — `
+           + `<span class="chip">${esc(c.idioma) || "—"}</span>`
+           + `<span class="chip">${esc(c.tema) || "—"}</span>`
+           + `<span class="chip">notif: ${esc(c.notificaciones)}</span>`
+           + `<span class="muted"> 🏅 ${esc(c.medalla) || "—"}</span></div>`;
+    }
+
+    // ---------- Guardar (POST form) ----------
+    async function guardarConfig(ev) {
+      ev.preventDefault();
+      try {
+        const id = document.getElementById("cfg_id").value.trim();
+        const body = new URLSearchParams({
+          idEntrenador: id,
+          nombre: document.getElementById("cfg_nombre").value,
+          apellido: document.getElementById("cfg_apellido").value,
+          medallas: document.getElementById("cfg_medallas").value,
+          idioma: document.getElementById("cfg_idioma").value,
+          tema: document.getElementById("cfg_tema").value,
+          notificaciones: document.getElementById("cfg_notif").checked ? "on" : "",
+        });
+        const resp = await fetch("/redis/config", { method: "POST", body });
+        const r = await resp.json();
+        if (!r.ok) return mostrarError(r.mensaje);
+        const d = r.data || {};
+        mostrar(`
+          <div class="ok-line">✅ Configuración guardada (HSET + índices)</div>
+          <div>ID: <span class="id-big">${esc(d.idEntrenador || id)}</span></div>
+          ${lineaConfig(d)}
+          <span class="hint">➡️ Verificalo con redis-cli:<br>
+          HGETALL entrenador:config:${esc(d.idEntrenador || id)}</span>
+        `);
+      } catch (e) { mostrarError("No se pudo conectar con el servidor"); }
+    }
+
+    // ---------- Ver config (GET) ----------
+    async function verConfig(ev) {
+      ev.preventDefault();
+      try {
+        const id = document.getElementById("ver_id").value.trim();
+        const resp = await fetch("/redis/config/" + encodeURIComponent(id));
+        const r = await resp.json();
+        if (!r.ok) return mostrarError(r.mensaje);
+        const d = r.data;
+        mostrar(`
+          <div>⚙️ Configuración de <span class="id-big">${esc(d.idEntrenador)}</span></div>
+          ${lineaConfig(d)}
+          <span class="hint">➡️ Lectura O(1) por clave:<br>
+          HGETALL entrenador:config:${esc(d.idEntrenador)}</span>
+        `);
+      } catch (e) { mostrarError("No se pudo conectar con el servidor"); }
+    }
+
+    // ---------- Eliminar (DELETE) ----------
+    async function eliminarConfig(ev) {
+      ev.preventDefault();
+      try {
+        const id = document.getElementById("del_id").value.trim();
+        if (!confirm(`¿Eliminar la configuración de ${id}? También se limpia de los índices.`)) return;
+        const resp = await fetch("/redis/config/" + encodeURIComponent(id), { method: "DELETE" });
+        const r = await resp.json();
+        if (!r.ok) return mostrarError(r.mensaje);
+        mostrar(`
+          <div class="ok-line">🗑️ Configuración eliminada</div>
+          <div>ID: <span class="id-big">${esc(id)}</span></div>
+          <div class="muted">Se borró el hash y se quitó el ID de todos los índices (DEL + SREM en pipeline).</div>
+          <span class="hint">➡️ Verificalo:<br>
+          EXISTS entrenador:config:${esc(id)}   (debe dar 0)</span>
+        `);
+      } catch (e) { mostrarError("No se pudo conectar con el servidor"); }
+    }
+
+    // ---------- Buscar por índices (GET con query params) ----------
+    async function buscar(ev) {
+      ev.preventDefault();
+      try {
+        const idioma = document.getElementById("bus_idioma").value.trim();
+        const tema = document.getElementById("bus_tema").value;
+        const medalla = document.getElementById("bus_medalla").value.trim();
+        const notif = document.getElementById("bus_notif").value;
+
+        const params = new URLSearchParams();
+        if (idioma) params.set("idioma", idioma);
+        if (tema) params.set("tema", tema);
+        if (medalla) params.set("medalla", medalla);
+        if (notif) params.set("notificaciones", notif);
+        if ([...params].length === 0)
+          return mostrarError("Indicá al menos un filtro: idioma, tema, medalla o notificaciones");
+
+        const resp = await fetch("/redis/buscar?" + params.toString());
+        const r = await resp.json();
+        if (!r.ok) return mostrarError(r.mensaje);
+        const d = r.data;
+
+        // Hint educativo: SMEMBERS si hay 1 filtro, SINTER si hay varios
+        const claves = [];
+        if (idioma) claves.push("indice:idioma:" + idioma);
+        if (tema) claves.push("indice:tema:" + tema);
+        if (medalla) claves.push("indice:medalla:" + medalla);
+        if (notif) claves.push("indice:notificaciones:" + notif.toUpperCase());
+        const comando = claves.length > 1 ? "SINTER " + claves.join(" ") : "SMEMBERS " + claves[0];
+
+        let html = `<div>🧲 Resultado: <span class="num">${esc(d.cantidad)}</span> entrenador(es)</div>`;
+        if (d.cantidad === 0) {
+          html += `<div class="muted">Ningún entrenador coincide con esos filtros.</div>`;
+        } else {
+          html += `<div class="section-h">Entrenadores:</div>`;
+          d.entrenadores.forEach(c => { html += lineaConfig(c); });
+        }
+        html += `<span class="hint">➡️ Lo que resolvió Redis (índices invertidos):<br>${esc(comando)}</span>`;
+        mostrar(html);
+      } catch (e) { mostrarError("No se pudo conectar con el servidor"); }
+    }
+
+    // ---------- Estado general ----------
+    async function verEstado() {
+      try {
+        const resp = await fetch("/redis/estado");
+        const r = await resp.json();
+        if (!r.ok) return mostrarError(r.mensaje);
+        const d = r.data;
+
+        const dictado = (obj) => Object.entries(obj || {})
+          .map(([k, v]) => `<div class="item">• ${esc(k)}: <span class="num">${esc(v)}</span></div>`)
+          .join("") || `<div class="item muted">—</div>`;
+
+        mostrar(`
+          <div style="font-size:1.05rem;color:var(--yellow);font-weight:700">📊 Estado de Redis en Pokengue</div>
+          <div class="item">• Total entrenadores: <span class="num">${esc(d.total_entrenadores)}</span></div>
+          <div class="section-h">Por idioma:</div>${dictado(d.por_idioma)}
+          <div class="section-h">Por tema:</div>${dictado(d.por_tema)}
+          <div class="section-h">Notificaciones:</div>
+          <div class="item">• Activadas: <span class="num">${esc(d.notificaciones_activadas)}</span></div>
+          <div class="item">• Desactivadas: <span class="num">${esc(d.notificaciones_desactivadas)}</span></div>
+          <div class="item">• Medallas indexadas: <span class="num">${esc(d.cantidad_medallas_indexadas)}</span></div>
+          <span class="hint">➡️ Detrás de escena: SCARD entrenadores · SCAN indice:* · SCARD por índice</span>
+        `);
+      } catch (e) { mostrarError("No se pudo conectar con el servidor"); }
+    }
+  </script>
+</body>
+</html>

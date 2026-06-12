@@ -1,9 +1,11 @@
 from flask import Flask, render_template,url_for, session, redirect, request, jsonify
 from pokeapi import get_pokemon, get_lista_pokemons
 from services.Neo4jService import Neo4jService
+from DAO.RedisDAO import RedisDAO
 
 app = Flask(__name__)
 neo4j_service = Neo4jService()
+redis_dao = RedisDAO()
 from sheets import get_entrenadores, get_pokemons_domesticados
 from pymongo import MongoClient
 
@@ -139,5 +141,121 @@ def cargar_pokemons_domesticados():
         "mensaje": "Datos cargados correctamente."
     })
 
+
+# ----------------------------------------------------------------------
+# Rutas Redis (Configuración y preferencias de entrenadores)
+# ----------------------------------------------------------------------
+@app.route("/redis/config", methods=["POST"])
+@app.route("/redis")
+def redis_home():
+    """Renderiza la página de la demo de Redis."""
+    return render_template("redis.html")
+
+@app.route("/redis/config", methods=["POST"])
+def redis_guardar_config():
+    """Crea/actualiza la configuración de un entrenador en Redis."""
+    try:
+        idEntrenador = request.form.get("idEntrenador", "").strip()
+        nombre = request.form.get("nombre", "").strip()
+        apellido = request.form.get("apellido", "").strip()
+        medallas_raw = request.form.get("medallas", "")
+        idioma = request.form.get("idioma", "").strip()
+        tema = request.form.get("tema", "").strip()
+        notificaciones = request.form.get("notificaciones") == "on"
+
+        if not idEntrenador:
+            return jsonify({"ok": False, "data": None,
+                            "mensaje": "Falta el ID del entrenador"})
+
+        medallas = [m.strip() for m in medallas_raw.split(",") if m.strip()]
+        config = redis_dao.guardar_config(
+            idEntrenador, nombre, apellido, medallas, idioma, tema, notificaciones
+        )
+        return jsonify({
+            "ok": True,
+            "data": config,
+            "mensaje": f"Configuración de {idEntrenador} guardada",
+        })
+    except Exception as e:
+        return jsonify({"ok": False, "data": None,
+                        "mensaje": f"Error al guardar configuración: {e}"})
+
+
+@app.route("/redis/config/<idEntrenador>")
+def redis_obtener_config(idEntrenador):
+    """Devuelve la configuración de un entrenador."""
+    try:
+        config = redis_dao.obtener_config(idEntrenador)
+        if config is None:
+            return jsonify({"ok": False, "data": None,
+                            "mensaje": f"No hay configuración para {idEntrenador}"})
+        return jsonify({"ok": True, "data": config,
+                        "mensaje": f"Configuración de {idEntrenador}"})
+    except Exception as e:
+        return jsonify({"ok": False, "data": None,
+                        "mensaje": f"Error al obtener configuración: {e}"})
+
+
+@app.route("/redis/config/<idEntrenador>", methods=["DELETE"])
+def redis_eliminar_config(idEntrenador):
+    """Elimina la configuración de un entrenador y sus índices."""
+    try:
+        eliminada = redis_dao.eliminar_config(idEntrenador)
+        if not eliminada:
+            return jsonify({"ok": False, "data": None,
+                            "mensaje": f"No existe configuración para {idEntrenador}"})
+        return jsonify({"ok": True, "data": {"idEntrenador": idEntrenador},
+                        "mensaje": f"Configuración de {idEntrenador} eliminada"})
+    except Exception as e:
+        return jsonify({"ok": False, "data": None,
+                        "mensaje": f"Error al eliminar configuración: {e}"})
+
+
+@app.route("/redis/buscar")
+def redis_buscar():
+    """
+    Busca entrenadores por uno o más atributos usando los índices invertidos.
+    """
+    try:
+        idioma = request.args.get("idioma", "").strip() or None
+        tema = request.args.get("tema", "").strip() or None
+        medalla = request.args.get("medalla", "").strip() or None
+        notif_raw = request.args.get("notificaciones", "").strip().lower()
+
+        if notif_raw in ("true", "false"):
+            resultados = redis_dao.buscar_por_notificaciones(notif_raw == "true")
+        elif sum(x is not None for x in (idioma, tema, medalla)) > 1:
+            resultados = redis_dao.buscar_combinado(idioma, tema, medalla)
+        elif idioma:
+            resultados = redis_dao.buscar_por_idioma(idioma)
+        elif tema:
+            resultados = redis_dao.buscar_por_tema(tema)
+        elif medalla:
+            resultados = redis_dao.buscar_por_medalla(medalla)
+        else:
+            return jsonify({"ok": False, "data": None,
+                            "mensaje": "Indicá al menos un filtro: idioma, tema, medalla o notificaciones"})
+
+        return jsonify({
+            "ok": True,
+            "data": {"cantidad": len(resultados), "entrenadores": resultados},
+            "mensaje": f"Se encontraron {len(resultados)} entrenadores",
+        })
+    except Exception as e:
+        return jsonify({"ok": False, "data": None,
+                        "mensaje": f"Error en la búsqueda: {e}"})
+
+
+@app.route("/redis/estado")
+def redis_estado():
+    """Conteos generales de la base Redis (para la demo)."""
+    try:
+        estado = redis_dao.contar_estado_general()
+        return jsonify({"ok": True, "data": estado,
+                        "mensaje": "Estado de Redis en Pokengue"})
+    except Exception as e:
+        return jsonify({"ok": False, "data": None,
+                        "mensaje": f"Error al obtener estado: {e}"})
+    
 if __name__ == "__main__":
     app.run(debug=True)
