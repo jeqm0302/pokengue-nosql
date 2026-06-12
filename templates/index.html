@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Pokengue</title>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;700&family=Fredoka:wght@500;600&display=swap" rel="stylesheet"/>
   <style>
     :root {
       --red: #E3350D;
@@ -94,20 +94,36 @@
       color: var(--yellow);
       text-shadow: 4px 4px 0 var(--red), -1px -1px 0 #111;
       letter-spacing: 2px;
-      margin-bottom: 0.5rem;
+      margin-bottom: 1.2rem;
       animation: fadeDown 0.8s ease both;
     }
 
     .subtitle {
-      font-size: 1rem;
-      color: #aaa;
+      font-family: 'Fredoka', sans-serif;
+      font-weight: 600;
+      font-size: 1.25rem;
+      color: #d4cdb8;
+      letter-spacing: 0.8px;
+      text-align: center;
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
+      margin-top: 0.8rem;
       margin-bottom: 3rem;
+      line-height: 1.3;
       animation: fadeDown 0.8s 0.2s ease both;
+    }
+
+    .deco-star {
+      display: inline-block;
+      color: var(--red);
+      font-size: 1.2rem;
+      margin: 0 0.8rem;
+      vertical-align: middle;
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
     }
 
     .db-grid {
       display: flex;
-      gap: 1.2rem;
+      gap: 1.6rem;
       justify-content: center;
       flex-wrap: wrap;
       animation: fadeDown 0.8s 0.4s ease both;
@@ -117,8 +133,11 @@
       background: var(--card-bg);
       border: 2px solid rgba(255,255,255,0.08);
       border-radius: 12px;
-      padding: 1.2rem 1.5rem;
-      width: 140px;
+      padding: 1.5rem 1.9rem;
+      width: 220px;
+      min-height: 260px;
+      display: flex;
+      flex-direction: column;
       transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
       cursor: default;
     }
@@ -128,14 +147,36 @@
       box-shadow: 0 8px 24px rgba(0,0,0,0.4);
     }
 
-    .db-card.mongo:hover  { border-color: #4DB33D; box-shadow: 0 8px 24px rgba(77,179,61,0.3); }
-    .db-card.neo4j:hover  { border-color: #008CC1; box-shadow: 0 8px 24px rgba(0,140,193,0.3); }
-    .db-card.cass:hover   { border-color: #1287B1; box-shadow: 0 8px 24px rgba(18,135,177,0.3); }
-    .db-card.redis:hover  { border-color: #D82C20; box-shadow: 0 8px 24px rgba(216,44,32,0.3); }
+    .db-card.mongo:hover  { border-color: #22c55e; box-shadow: 0 8px 30px #22c55e66; }
+    .db-card.neo4j:hover  { border-color: #ec4899; box-shadow: 0 8px 30px #ec489966; }
+    .db-card.cass:hover   { border-color: #a855f7; box-shadow: 0 8px 30px #a855f766; }
+    .db-card.redis:hover  { border-color: #3b82f6; box-shadow: 0 8px 30px #3b82f666; }
 
-    .db-icon { font-size: 2rem; margin-bottom: 0.5rem; }
-    .db-name { font-family: 'Press Start 2P', monospace; font-size: 0.5rem; color: var(--yellow); margin-bottom: 0.3rem; }
-    .db-desc { font-size: 0.72rem; color: #888; line-height: 1.4; }
+    .db-icon { font-size: 2.6rem; margin-bottom: 0.7rem; }
+    .db-name {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.9rem;
+      color: var(--yellow);
+      margin-bottom: 0.7rem;
+      text-align: center;
+    }
+    .db-desc {
+      font-size: 1.15rem;
+      color: #888;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    .demo-link {
+      display: block;
+      color: var(--red);
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 1.5px;
+      margin-top: 1.2rem;
+      text-align: center;
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
+    }
 
     @keyframes fadeDown {
       from { opacity: 0; transform: translateY(-20px); }
@@ -143,23 +184,103 @@
     }
 
     /* La tarjeta de Neo4j es un link a la demo (las demás siguen siendo divs) */
-    a.db-card { text-decoration: none; color: inherit; cursor: pointer; display: block; }
-    .demo-cta {
-      margin-top: 0.6rem;
-      font-family: 'Press Start 2P', monospace;
-      font-size: 0.45rem;
-      color: var(--red);
-      letter-spacing: 0.5px;
-      transition: color 0.2s;
+    a.db-card { text-decoration: none; color: inherit; cursor: pointer; }
+
+    .db-card.mongo .db-icon {
+      display: inline-block;
+      transform-origin: bottom center;
+      animation: brillo-mongo 2s ease-in-out infinite;
     }
-    .db-card.neo4j:hover .demo-cta { color: var(--yellow); }
+    @keyframes brillo-mongo {
+      0%, 100% { opacity: 0.85; filter: drop-shadow(0 0 0 transparent); transform: rotate(-5deg); }
+      50%      { opacity: 1;    filter: drop-shadow(0 0 6px #22c55eaa); transform: rotate(5deg); }
+    }
+
+    .db-card.neo4j .db-icon {
+      display: inline-block;
+      transform-origin: center;
+      animation: brillo-neo 2s ease-in-out infinite;
+    }
+    @keyframes brillo-neo {
+      0%, 100% { opacity: 0.85; filter: drop-shadow(0 0 0 transparent); transform: scale(1); }
+      50%      { opacity: 1;    filter: drop-shadow(0 0 6px #ec4899aa); transform: scale(1.05); }
+    }
+
+    .db-card.cass .db-icon {
+      display: inline-block;
+      animation: brillo-cass 2s ease-in-out infinite;
+    }
+    @keyframes brillo-cass {
+      0%, 100% { opacity: 0.85; filter: drop-shadow(0 0 0 transparent); }
+      50%      { opacity: 1;    filter: drop-shadow(0 0 6px #a855f7aa); }
+    }
+
+    .db-card.redis .db-icon {
+      display: inline-block;
+      animation: brillo-redis 2s ease-in-out infinite;
+    }
+    @keyframes brillo-redis {
+      0%, 100% { opacity: 0.85; filter: drop-shadow(0 0 0 transparent); transform: rotate(-3deg); }
+      50%      { opacity: 1;    filter: drop-shadow(0 0 6px #3b82f6aa); transform: rotate(3deg); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .db-icon,
+      .db-card.neo4j .db-icon svg,
+      .pokeball,
+      .estado-neo4j,
+      .estado-neo4j.ok,
+      .estado-neo4j.error { animation: none !important; }
+      .estado-neo4j { opacity: 1 !important; }
+    }
+
+    .estado-neo4j {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 0.95rem;
+      padding: 12px 22px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.6);
+      border: 2px solid #9aa0a6;
+      color: #d0d4d9;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      animation: fadeInBadge 0.6s 0.3s ease-out forwards;
+    }
+    @keyframes fadeInBadge {
+      from { opacity: 0; transform: translateY(-10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .estado-neo4j.ok {
+      border-color: #22c55e; color: #4ade80;
+      animation: fadeInBadge 0.6s 0.3s ease-out forwards, brillo-ok 2s ease-in-out infinite;
+    }
+    @keyframes brillo-ok {
+      0%, 100% { box-shadow: 0 4px 16px rgba(34, 197, 94, 0.2); }
+      50%      { box-shadow: 0 4px 24px rgba(34, 197, 94, 0.6); }
+    }
+    .estado-neo4j.error {
+      border-color: #ef4444; color: #f87171;
+      animation: fadeInBadge 0.6s 0.3s ease-out forwards, brillo-error 2s ease-in-out infinite;
+    }
+    @keyframes brillo-error {
+      0%, 100% { box-shadow: 0 4px 16px rgba(239, 68, 68, 0.2); }
+      50%      { box-shadow: 0 4px 24px rgba(239, 68, 68, 0.6); }
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="pokeball"></div>
     <h1>Pokengue</h1>
-    <p class="subtitle">Proyecto integrador de bases de datos NoSQL</p>
+    <p class="subtitle">
+      <span class="deco-star">✦</span>
+      Proyecto integrador de bases de datos NoSQL
+      <span class="deco-star">✦</span>
+    </p>
 
     <div class="db-grid">
       <div class="db-card mongo">
@@ -170,8 +291,8 @@
       <a href="/neo4j" class="db-card neo4j">
         <div class="db-icon">🕸️</div>
         <div class="db-name">Neo4J</div>
-        <div class="db-desc">Relaciones y evoluciones</div>
-        <div class="demo-cta">VER DEMO →</div>
+        <div class="db-desc">Red social Pokémon</div>
+        <div class="demo-link">VER DEMO</div>
       </a>
       <div class="db-card cass">
         <div class="db-icon">💎</div>
@@ -185,5 +306,27 @@
       </div>
     </div>
   </div>
+
+  <div id="estadoNeo4j" class="estado-neo4j">⏳ Neo4j…</div>
+
+  <script>
+    (async function () {
+      const el = document.getElementById('estadoNeo4j');
+      try {
+        const resp = await fetch('/neo4j/estado');
+        const r = await resp.json();
+        if (r.ok) {
+          el.textContent = '🟢 Neo4j conectado';
+          el.classList.add('ok');
+        } else {
+          el.textContent = '🔴 Neo4j desconectado';
+          el.classList.add('error');
+        }
+      } catch (e) {
+        el.textContent = '🔴 Neo4j desconectado';
+        el.classList.add('error');
+      }
+    })();
+  </script>
 </body>
 </html>
