@@ -397,14 +397,6 @@
         <div class="col-title">CONSULTAS</div>
 
         <div class="card">
-          <h3>🔎 Información completa de entrenador</h3>
-          <form onsubmit="verInfo(event)">
-            <input type="text" id="info_id" placeholder="Identificador (ejemplo: ENT-001)" required />
-            <button type="submit">VER INFORMACIÓN</button>
-          </form>
-        </div>
-
-        <div class="card">
           <h3>💡 Recomendar amigos</h3>
           <form onsubmit="recomendar(event)">
             <input type="text" id="rec_id" placeholder="Identificador (ejemplo: ENT-004)" required />
@@ -593,36 +585,6 @@
     }
 
     // ---------- GETs (consultas) ----------
-    async function verInfo(ev) {
-      ev.preventDefault();
-      try {
-        const id = document.getElementById("info_id").value.trim();
-        const resp = await fetch("/neo4j/info/" + encodeURIComponent(id));
-        const r = await resp.json();
-        if (!r.ok) return mostrarError(r.mensaje);
-        const e = r.data.entrenador, poks = r.data.pokemons, amigos = r.data.amigos;
-
-        let html = `<div>👤 <b style="font-size:1.05rem">${esc(e.nombre)} ${esc(e.apellido)}</b> `
-                 + `(<span class="num">${esc(e.idEntrenador)}</span>)</div>`;
-        html += `<div class="muted">Medallas: ${lista(e.medallas)}</div>`;
-
-        html += `<div class="section-h">🐉 Pokémon (${poks.length}):</div>`;
-        if (poks.length === 0) html += `<div class="item muted">Sin pokémon todavía</div>`;
-        poks.forEach(p => {
-          const estado = p.en_equipo ? "✅ En equipo" : "📦 En el PC";
-          html += `<div class="item">• ${esc(p.nombre)} (${lista(p.tipo)}) - ${estado}</div>`;
-        });
-
-        html += `<div class="section-h">🤝 Amigos (${amigos.length}):</div>`;
-        if (amigos.length === 0) html += `<div class="item muted">Sin amigos todavía</div>`;
-        amigos.forEach(a => {
-          html += `<div class="item">• ${esc(a.nombre)} ${esc(a.apellido)} (${esc(a.idEntrenador)})</div>`;
-        });
-
-        mostrar(html);
-      } catch (e) { mostrarError("No se pudo conectar con el servidor"); }
-    }
-
     async function recomendar(ev) {
       ev.preventDefault();
       try {

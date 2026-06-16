@@ -75,12 +75,6 @@ def neo4j_crear_amistad():
     return jsonify(resultado)
 
 
-@app.route("/neo4j/info/<id>")
-def neo4j_info(id):
-    resultado = neo4j_service.obtener_info(id)
-    return jsonify(resultado)
-
-
 @app.route("/neo4j/recomendar/<id>")
 def neo4j_recomendar(id):
     resultado = neo4j_service.recomendar(id)

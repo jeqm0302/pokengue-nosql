@@ -122,31 +122,6 @@ class Neo4jService:
             return {"ok": False, "data": None,
                     "mensaje": f"Error al crear amistad: {e}"}
 
-    def obtener_info(self, id):
-        try:
-            entrenador_dict = self.dao.obtener_entrenador(id)
-            if entrenador_dict is None:
-                return {"ok": False, "data": None,
-                        "mensaje": f"No se encontró el entrenador con ID {id}"}
-
-            entrenador = Entrenador(**entrenador_dict)
-            pokemons_dicts = self.dao.obtener_pokemons_de(id)
-            amigos_dicts = self.dao.obtener_amigos(id)
-            amigos = [Entrenador(**d).__dict__ for d in amigos_dicts]
-
-            return {
-                "ok": True,
-                "data": {
-                    "entrenador": entrenador.__dict__,
-                    "pokemons": pokemons_dicts,
-                    "amigos": amigos,
-                },
-                "mensaje": f"Info de {id}",
-            }
-        except Exception as e:
-            return {"ok": False, "data": None,
-                    "mensaje": f"Error al obtener info: {e}"}
-
     def recomendar(self, id):
         try:
             entrenador_dict = self.dao.obtener_entrenador(id)
