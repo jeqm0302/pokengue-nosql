@@ -81,6 +81,12 @@ def neo4j_recomendar(id):
     return jsonify(resultado)
 
 
+@app.route("/neo4j/triangulos")
+def neo4j_triangulos():
+    resultado = neo4j_service.detectar_triangulos()
+    return jsonify(resultado)
+
+
 @app.route("/neo4j/estado")
 def neo4j_estado():
     resultado = neo4j_service.obtener_estado()

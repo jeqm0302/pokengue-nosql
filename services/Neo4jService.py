@@ -144,6 +144,24 @@ class Neo4jService:
             return {"ok": False, "data": None,
                     "mensaje": f"Error al recomendar amigos: {e}"}
 
+    def detectar_triangulos(self):
+        try:
+            triangulos = self.dao.detectar_triangulos_sociales()
+            return {
+                "ok": True,
+                "data": {
+                    "cantidad": len(triangulos),
+                    "triangulos": triangulos
+                },
+                "mensaje": f"Se detectaron {len(triangulos)} triangulos sociales"
+            }
+        except Exception as e:
+            return {
+                "ok": False,
+                "data": None,
+                "mensaje": f"Error al detectar triangulos: {e}"
+            }
+
     def obtener_estado(self):
         try:
             estado = self.dao.contar_estado_general()

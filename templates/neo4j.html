@@ -405,6 +405,11 @@
         </div>
 
         <div class="card">
+          <h3>🔺 Triangulos sociales</h3>
+          <button type="button" onclick="detectarTriangulos()">DETECTAR TRIANGULOS</button>
+        </div>
+
+        <div class="card">
           <h3>📊 Estado del grafo</h3>
           <button type="button" onclick="verEstado()">VER ESTADO GENERAL</button>
         </div>
@@ -605,6 +610,30 @@
                   + `amigo(s) en común</div>`;
           });
         }
+        mostrar(html);
+      } catch (e) { mostrarError("No se pudo conectar con el servidor"); }
+    }
+
+    async function detectarTriangulos() {
+      try {
+        const resp = await fetch("/neo4j/triangulos");
+        const r = await resp.json();
+        if (!r.ok) return mostrarError(r.mensaje);
+
+        const triangulos = r.data.triangulos, cantidad = r.data.cantidad;
+        if (cantidad === 0) {
+          return mostrar(`<div>🔺 Triangulos sociales</div><br>`
+                       + `<div class="muted">No se detectaron triangulos en la red.</div>`);
+        }
+
+        let html = `<div>🔺 Triangulos sociales detectados `
+                 + `(<span class="num">${esc(cantidad)}</span>)</div><br>`;
+        triangulos.forEach((t, i) => {
+          html += `<div class="section-h">Triangulo ${i + 1}:</div>`
+                + `<div class="item">• <b>${esc(t.entrenador1.nombre)} ${esc(t.entrenador1.apellido)}</b> (${esc(t.entrenador1.idEntrenador)})</div>`
+                + `<div class="item">• <b>${esc(t.entrenador2.nombre)} ${esc(t.entrenador2.apellido)}</b> (${esc(t.entrenador2.idEntrenador)})</div>`
+                + `<div class="item">• <b>${esc(t.entrenador3.nombre)} ${esc(t.entrenador3.apellido)}</b> (${esc(t.entrenador3.idEntrenador)})</div>`;
+        });
         mostrar(html);
       } catch (e) { mostrarError("No se pudo conectar con el servidor"); }
     }

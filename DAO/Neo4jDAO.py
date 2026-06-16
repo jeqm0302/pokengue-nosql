@@ -182,6 +182,41 @@ class Neo4jDAO:
                 recomendaciones.append(candidato)
             return recomendaciones
 
+    def detectar_triangulos_sociales(self, limite=20):
+        consulta = """
+        MATCH (a:Entrenador)-[:ES_AMIGO_DE]-(b:Entrenador)
+        MATCH (b)-[:ES_AMIGO_DE]-(c:Entrenador)
+        MATCH (a)-[:ES_AMIGO_DE]-(c)
+        WHERE a.idEntrenador < b.idEntrenador
+          AND b.idEntrenador < c.idEntrenador
+        RETURN DISTINCT a.idEntrenador AS id1, a.nombre AS nombre1, a.apellido AS apellido1,
+               b.idEntrenador AS id2, b.nombre AS nombre2, b.apellido AS apellido2,
+               c.idEntrenador AS id3, c.nombre AS nombre3, c.apellido AS apellido3
+        LIMIT $limite
+        """
+        with self.conn.obtener_session() as sesion:
+            resultado = sesion.run(consulta, limite=limite)
+            triangulos = []
+            for record in resultado:
+                triangulos.append({
+                    "entrenador1": {
+                        "idEntrenador": record["id1"],
+                        "nombre": record["nombre1"],
+                        "apellido": record["apellido1"]
+                    },
+                    "entrenador2": {
+                        "idEntrenador": record["id2"],
+                        "nombre": record["nombre2"],
+                        "apellido": record["apellido2"]
+                    },
+                    "entrenador3": {
+                        "idEntrenador": record["id3"],
+                        "nombre": record["nombre3"],
+                        "apellido": record["apellido3"]
+                    }
+                })
+            return triangulos
+
     def contar_estado_general(self):
         consulta = """
         CALL { MATCH (e:Entrenador) RETURN count(e) AS entrenadores }
