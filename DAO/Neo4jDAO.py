@@ -129,18 +129,6 @@ class Neo4jDAO:
             resultado = sesion.run(consulta, id_menor=id_menor, id_mayor=id_mayor)
             return resultado.single() is not None
 
-    def crear_rivalidad(self, id1, id2):
-        consulta = """
-        MATCH (a:Entrenador {idEntrenador: $id_menor})
-        MATCH (b:Entrenador {idEntrenador: $id_mayor})
-        MERGE (a)-[r:ES_RIVAL_DE]->(b)
-        RETURN r
-        """
-        id_menor, id_mayor = sorted([id1, id2])
-        with self.conn.obtener_session() as sesion:
-            resultado = sesion.run(consulta, id_menor=id_menor, id_mayor=id_mayor)
-            return resultado.single() is not None
-
     def obtener_entrenador(self, idEntrenador):
         consulta = """
         MATCH (e:Entrenador {idEntrenador: $idEntrenador})
@@ -166,17 +154,6 @@ class Neo4jDAO:
                 pokemons.append(pokemon)
             return pokemons
 
-    def obtener_equipo_activo(self, idEntrenador):
-        consulta = """
-        MATCH (e:Entrenador {idEntrenador: $idEntrenador})-[r:TIENE]->(p:Pokemon)
-        WHERE r.en_equipo = true
-        RETURN p
-        ORDER BY p.idPokemon
-        """
-        with self.conn.obtener_session() as sesion:
-            resultado = sesion.run(consulta, idEntrenador=idEntrenador)
-            return [dict(registro["p"]) for registro in resultado]
-
     def obtener_amigos(self, idEntrenador):
         consulta = """
         MATCH (e:Entrenador {idEntrenador: $idEntrenador})-[:ES_AMIGO_DE]-(amigo:Entrenador)
@@ -186,16 +163,6 @@ class Neo4jDAO:
         with self.conn.obtener_session() as sesion:
             resultado = sesion.run(consulta, idEntrenador=idEntrenador)
             return [dict(registro["amigo"]) for registro in resultado]
-
-    def obtener_rivales(self, idEntrenador):
-        consulta = """
-        MATCH (e:Entrenador {idEntrenador: $idEntrenador})-[:ES_RIVAL_DE]-(rival:Entrenador)
-        RETURN rival
-        ORDER BY rival.idEntrenador
-        """
-        with self.conn.obtener_session() as sesion:
-            resultado = sesion.run(consulta, idEntrenador=idEntrenador)
-            return [dict(registro["rival"]) for registro in resultado]
 
     def recomendar_amigos(self, idEntrenador):
         consulta = """
@@ -214,19 +181,6 @@ class Neo4jDAO:
                 candidato["amigos_en_comun"] = registro["amigos_en_comun"]
                 recomendaciones.append(candidato)
             return recomendaciones
-
-    def contar_pokemons_por_entrenador(self):
-        consulta = """
-        MATCH (e:Entrenador)
-        OPTIONAL MATCH (e)-[:TIENE]->(p:Pokemon)
-        RETURN e.idEntrenador AS idEntrenador,
-               e.nombre AS nombre,
-               count(p) AS cantidad
-        ORDER BY cantidad DESC, e.idEntrenador
-        """
-        with self.conn.obtener_session() as sesion:
-            resultado = sesion.run(consulta)
-            return [registro.data() for registro in resultado]
 
     def contar_estado_general(self):
         consulta = """
