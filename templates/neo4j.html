@@ -397,7 +397,7 @@
         <div class="col-title">CONSULTAS</div>
 
         <div class="card">
-          <h3>💡 Recomendar amigos</h3>
+          <h3>💡 Recomendar amigos <span style="cursor:help;font-size:0.8rem" title="Sugiere nuevos vinculos a partir de tu red: amigos de tus amigos con quienes todavia no estas conectado.">ℹ️</span></h3>
           <form onsubmit="recomendar(event)">
             <input type="text" id="rec_id" placeholder="Identificador (ejemplo: ENT-004)" required />
             <button type="submit">RECOMENDAR</button>
@@ -405,7 +405,7 @@
         </div>
 
         <div class="card">
-          <h3>🔥 Rivales potenciales</h3>
+          <h3>🔥 Rivales potenciales <span style="cursor:help;font-size:0.8rem" title="Detecta posibles rivales: entrenadores con pokemon en comun que aun no forman parte de tu circulo de amigos.">ℹ️</span></h3>
           <form onsubmit="detectarRivales(event)">
             <input type="text" id="riv_id" placeholder="Identificador (ejemplo: ENT-001)" required />
             <button type="submit">DETECTAR RIVALES</button>
@@ -424,6 +424,7 @@
     <div id="resultado">
       <span class="placeholder">Los resultados de cada operación aparecerán aquí. Cargá un dato desde los formularios y luego verificalo en Neo4j Desktop. ⚡</span>
     </div>
+    <button type="button" onclick="limpiarResultado()">🗑️ Limpiar</button>
   </div>
 
   <script>
@@ -487,6 +488,23 @@
     }
 
     function mostrar(html) { caja.innerHTML = html; caja.scrollTop = 0; }
+
+    function limpiarResultado() {
+      mostrar('<span class="placeholder">Sin resultados aún</span>');
+    }
+
+    function animarNumeros() {
+      document.querySelectorAll('#resultado .num[data-valor]').forEach(el => {
+        const final = parseInt(el.dataset.valor) || 0;
+        let actual = 0;
+        const paso = Math.max(1, Math.ceil(final / 30));
+        const timer = setInterval(() => {
+          actual += paso;
+          if (actual >= final) { actual = final; clearInterval(timer); }
+          el.textContent = actual;
+        }, 25);
+      });
+    }
 
     function mostrarError(mensaje) {
       mostrar(`<div class="err-line">⚠️ ${esc(mensaje)}</div>`);
@@ -597,23 +615,25 @@
       ev.preventDefault();
       try {
         const id = document.getElementById("rec_id").value.trim();
+        mostrar('<div class="muted">🔄 Buscando recomendaciones...</div>');
         const resp = await fetch("/neo4j/recomendar/" + encodeURIComponent(id));
         const r = await resp.json();
         if (!r.ok) return mostrarError(r.mensaje);
         const e = r.data.entrenador, recs = r.data.recomendaciones;
 
-        let html = `<div>💡 Recomendaciones de amigos para `
+        let listaTexto = `<div>💡 Recomendaciones de amigos para `
                  + `<b>${esc(e.nombre)}</b> (<span class="num">${esc(e.idEntrenador)}</span>)</div><br>`;
         if (recs.length === 0) {
-          html += `<div class="muted">No hay amigos de amigos para recomendar.</div>`;
+          listaTexto += `<div class="muted">No hay amigos de amigos para recomendar.</div>`;
+          mostrar(listaTexto);
         } else {
           recs.forEach((c, i) => {
-            html += `<div class="item">${i + 1}. <b>${esc(c.nombre)} ${esc(c.apellido)}</b> `
+            listaTexto += `<div class="item">${i + 1}. <b>${esc(c.nombre)} ${esc(c.apellido)}</b> `
                   + `(${esc(c.idEntrenador)}) - <span class="num">${esc(c.amigos_en_comun)}</span> `
                   + `amigo(s) en común</div>`;
           });
+          mostrar(listaTexto);
         }
-        mostrar(html);
       } catch (e) { mostrarError("No se pudo conectar con el servidor"); }
     }
 
@@ -622,23 +642,25 @@
       try {
         const id = document.getElementById("riv_id").value.trim();
         if (!id) return mostrarError("Falta el ID del entrenador");
+        mostrar('<div class="muted">🔄 Buscando rivales potenciales...</div>');
         const resp = await fetch("/neo4j/rivales/" + encodeURIComponent(id));
         const r = await resp.json();
         if (!r.ok) return mostrarError(r.mensaje);
 
         const rivales = r.data.rivales, cantidad = r.data.cantidad;
-        let html = `<div>🔥 Rivales potenciales para `
+        let listaTexto = `<div>🔥 Rivales potenciales para `
                  + `<span class="num">${esc(r.data.idEntrenador)}</span></div><br>`;
         if (cantidad === 0) {
-          html += `<div class="muted">No se detectaron rivales potenciales.</div>`;
+          listaTexto += `<div class="muted">No se detectaron rivales potenciales.</div>`;
+          mostrar(listaTexto);
         } else {
           rivales.forEach((c, i) => {
-            html += `<div class="section-h">${i + 1}. <b>${esc(c.nombre)} ${esc(c.apellido)}</b> (${esc(c.idEntrenador)})</div>`
+            listaTexto += `<div class="section-h">${i + 1}. <b>${esc(c.nombre)} ${esc(c.apellido)}</b> (${esc(c.idEntrenador)})</div>`
                   + `<div class="item"><span class="num">${esc(c.pokemons_en_comun)}</span> pokémon en común</div>`
                   + `<div class="item muted">${lista(c.nombres_pokemons)}</div>`;
           });
+          mostrar(listaTexto);
         }
-        mostrar(html);
       } catch (e) { mostrarError("No se pudo conectar con el servidor"); }
     }
 
@@ -650,11 +672,12 @@
         const d = r.data;
         mostrar(`
           <div style="font-size:1.05rem;color:var(--yellow);font-weight:700">📊 Estado del grafo Pokengue</div>
-          <div class="item">• Entrenadores: <span class="num">${esc(d.entrenadores)}</span></div>
-          <div class="item">• Pokémon: <span class="num">${esc(d.pokemons)}</span></div>
-          <div class="item">• Relaciones TIENE: <span class="num">${esc(d.tiene)}</span></div>
-          <div class="item">• Amistades: <span class="num">${esc(d.amistades)}</span></div>
+          <div class="item">• Entrenadores: <span class="num" data-valor="${esc(d.entrenadores)}">0</span></div>
+          <div class="item">• Pokémon: <span class="num" data-valor="${esc(d.pokemons)}">0</span></div>
+          <div class="item">• Relaciones TIENE: <span class="num" data-valor="${esc(d.tiene)}">0</span></div>
+          <div class="item">• Amistades: <span class="num" data-valor="${esc(d.amistades)}">0</span></div>
         `);
+        animarNumeros();
       } catch (e) { mostrarError("No se pudo conectar con el servidor"); }
     }
   </script>
