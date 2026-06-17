@@ -21,7 +21,7 @@ class ConexionNeo4j:
             self._database = os.getenv("NEO4J_DATABASE", "neo4j")
             try:
                 self._driver = GraphDatabase.driver(uri, auth=(usuario, contrasena))
-                self._driver.verify_connectivity()  # verifica conexión
+                self._driver.verify_connectivity()
             except (Neo4jError, ServiceUnavailable) as e:
                 self._driver = None
                 self._database = None

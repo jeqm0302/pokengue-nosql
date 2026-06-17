@@ -36,19 +36,6 @@ class Neo4jDAO:
             registro = resultado.single()
             return dict(registro["e"]) if registro else None
 
-    def cargar_entrenadores_masivo(self, lista_dicts):
-        consulta = """
-        UNWIND $entrenadores AS fila
-        MERGE (e:Entrenador {idEntrenador: fila.idEntrenador})
-        SET e.nombre = fila.nombre,
-            e.apellido = fila.apellido,
-            e.medallas = fila.medallas
-        RETURN count(e) AS procesados
-        """
-        with self.conn.obtener_session() as sesion:
-            resultado = sesion.run(consulta, entrenadores=lista_dicts)
-            return resultado.single()["procesados"]
-
     def cargar_pokemon(self, idPokemon, especie, nombre, tipo, peso, altura):
         consulta = """
         MERGE (p:Pokemon {idPokemon: $idPokemon})
@@ -72,21 +59,6 @@ class Neo4jDAO:
             registro = resultado.single()
             return dict(registro["p"]) if registro else None
 
-    def cargar_pokemons_masivo(self, lista_dicts):
-        consulta = """
-        UNWIND $pokemons AS fila
-        MERGE (p:Pokemon {idPokemon: fila.idPokemon})
-        SET p.especie = fila.especie,
-            p.nombre = fila.nombre,
-            p.tipo = fila.tipo,
-            p.peso = fila.peso,
-            p.altura = fila.altura
-        RETURN count(p) AS procesados
-        """
-        with self.conn.obtener_session() as sesion:
-            resultado = sesion.run(consulta, pokemons=lista_dicts)
-            return resultado.single()["procesados"]
-
     def crear_relacion_tiene(self, idEntrenador, idPokemon, en_equipo):
         consulta = """
         MATCH (e:Entrenador {idEntrenador: $idEntrenador})
@@ -103,19 +75,6 @@ class Neo4jDAO:
                 en_equipo=en_equipo,
             )
             return resultado.single() is not None
-
-    def crear_relaciones_tiene_masivo(self, lista_dicts):
-        consulta = """
-        UNWIND $relaciones AS fila
-        MATCH (e:Entrenador {idEntrenador: fila.idEntrenador})
-        MATCH (p:Pokemon {idPokemon: fila.idPokemon})
-        MERGE (e)-[r:TIENE]->(p)
-        SET r.en_equipo = fila.en_equipo
-        RETURN count(r) AS procesadas
-        """
-        with self.conn.obtener_session() as sesion:
-            resultado = sesion.run(consulta, relaciones=lista_dicts)
-            return resultado.single()["procesadas"]
 
     def crear_amistad(self, id1, id2):
         consulta = """
@@ -138,31 +97,6 @@ class Neo4jDAO:
             resultado = sesion.run(consulta, idEntrenador=idEntrenador)
             registro = resultado.single()
             return dict(registro["e"]) if registro else None
-
-    def obtener_pokemons_de(self, idEntrenador):
-        consulta = """
-        MATCH (e:Entrenador {idEntrenador: $idEntrenador})-[r:TIENE]->(p:Pokemon)
-        RETURN p, r.en_equipo AS en_equipo
-        ORDER BY p.idPokemon
-        """
-        with self.conn.obtener_session() as sesion:
-            resultado = sesion.run(consulta, idEntrenador=idEntrenador)
-            pokemons = []
-            for registro in resultado:
-                pokemon = dict(registro["p"])
-                pokemon["en_equipo"] = registro["en_equipo"]
-                pokemons.append(pokemon)
-            return pokemons
-
-    def obtener_amigos(self, idEntrenador):
-        consulta = """
-        MATCH (e:Entrenador {idEntrenador: $idEntrenador})-[:ES_AMIGO_DE]-(amigo:Entrenador)
-        RETURN amigo
-        ORDER BY amigo.idEntrenador
-        """
-        with self.conn.obtener_session() as sesion:
-            resultado = sesion.run(consulta, idEntrenador=idEntrenador)
-            return [dict(registro["amigo"]) for registro in resultado]
 
     def recomendar_amigos(self, idEntrenador):
         consulta = """
