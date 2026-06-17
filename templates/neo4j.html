@@ -405,8 +405,11 @@
         </div>
 
         <div class="card">
-          <h3>🔺 Triangulos sociales</h3>
-          <button type="button" onclick="detectarTriangulos()">DETECTAR TRIANGULOS</button>
+          <h3>🔥 Rivales potenciales</h3>
+          <form onsubmit="detectarRivales(event)">
+            <input type="text" id="riv_id" placeholder="Identificador (ejemplo: ENT-001)" required />
+            <button type="submit">DETECTAR RIVALES</button>
+          </form>
         </div>
 
         <div class="card">
@@ -614,26 +617,27 @@
       } catch (e) { mostrarError("No se pudo conectar con el servidor"); }
     }
 
-    async function detectarTriangulos() {
+    async function detectarRivales(ev) {
+      ev.preventDefault();
       try {
-        const resp = await fetch("/neo4j/triangulos");
+        const id = document.getElementById("riv_id").value.trim();
+        if (!id) return mostrarError("Falta el ID del entrenador");
+        const resp = await fetch("/neo4j/rivales/" + encodeURIComponent(id));
         const r = await resp.json();
         if (!r.ok) return mostrarError(r.mensaje);
 
-        const triangulos = r.data.triangulos, cantidad = r.data.cantidad;
+        const rivales = r.data.rivales, cantidad = r.data.cantidad;
+        let html = `<div>🔥 Rivales potenciales para `
+                 + `<span class="num">${esc(r.data.idEntrenador)}</span></div><br>`;
         if (cantidad === 0) {
-          return mostrar(`<div>🔺 Triangulos sociales</div><br>`
-                       + `<div class="muted">No se detectaron triangulos en la red.</div>`);
+          html += `<div class="muted">No se detectaron rivales potenciales.</div>`;
+        } else {
+          rivales.forEach((c, i) => {
+            html += `<div class="section-h">${i + 1}. <b>${esc(c.nombre)} ${esc(c.apellido)}</b> (${esc(c.idEntrenador)})</div>`
+                  + `<div class="item"><span class="num">${esc(c.pokemons_en_comun)}</span> pokémon en común</div>`
+                  + `<div class="item muted">${lista(c.nombres_pokemons)}</div>`;
+          });
         }
-
-        let html = `<div>🔺 Triangulos sociales detectados `
-                 + `(<span class="num">${esc(cantidad)}</span>)</div><br>`;
-        triangulos.forEach((t, i) => {
-          html += `<div class="section-h">Triangulo ${i + 1}:</div>`
-                + `<div class="item">• <b>${esc(t.entrenador1.nombre)} ${esc(t.entrenador1.apellido)}</b> (${esc(t.entrenador1.idEntrenador)})</div>`
-                + `<div class="item">• <b>${esc(t.entrenador2.nombre)} ${esc(t.entrenador2.apellido)}</b> (${esc(t.entrenador2.idEntrenador)})</div>`
-                + `<div class="item">• <b>${esc(t.entrenador3.nombre)} ${esc(t.entrenador3.apellido)}</b> (${esc(t.entrenador3.idEntrenador)})</div>`;
-        });
         mostrar(html);
       } catch (e) { mostrarError("No se pudo conectar con el servidor"); }
     }

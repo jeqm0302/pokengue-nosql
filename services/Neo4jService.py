@@ -144,22 +144,29 @@ class Neo4jService:
             return {"ok": False, "data": None,
                     "mensaje": f"Error al recomendar amigos: {e}"}
 
-    def detectar_triangulos(self):
+    def detectar_rivales(self, idEntrenador):
         try:
-            triangulos = self.dao.detectar_triangulos_sociales()
+            if not idEntrenador or not idEntrenador.strip():
+                return {
+                    "ok": False,
+                    "data": None,
+                    "mensaje": "Falta el ID del entrenador"
+                }
+            rivales = self.dao.detectar_rivales_potenciales(idEntrenador.strip())
             return {
                 "ok": True,
                 "data": {
-                    "cantidad": len(triangulos),
-                    "triangulos": triangulos
+                    "idEntrenador": idEntrenador.strip(),
+                    "cantidad": len(rivales),
+                    "rivales": rivales
                 },
-                "mensaje": f"Se detectaron {len(triangulos)} triangulos sociales"
+                "mensaje": f"Se detectaron {len(rivales)} rivales potenciales para {idEntrenador.strip()}"
             }
         except Exception as e:
             return {
                 "ok": False,
                 "data": None,
-                "mensaje": f"Error al detectar triangulos: {e}"
+                "mensaje": f"Error al detectar rivales: {e}"
             }
 
     def obtener_estado(self):

@@ -182,40 +182,32 @@ class Neo4jDAO:
                 recomendaciones.append(candidato)
             return recomendaciones
 
-    def detectar_triangulos_sociales(self, limite=20):
+    def detectar_rivales_potenciales(self, idEntrenador, limite=10):
         consulta = """
-        MATCH (a:Entrenador)-[:ES_AMIGO_DE]-(b:Entrenador)
-        MATCH (b)-[:ES_AMIGO_DE]-(c:Entrenador)
-        MATCH (a)-[:ES_AMIGO_DE]-(c)
-        WHERE a.idEntrenador < b.idEntrenador
-          AND b.idEntrenador < c.idEntrenador
-        RETURN DISTINCT a.idEntrenador AS id1, a.nombre AS nombre1, a.apellido AS apellido1,
-               b.idEntrenador AS id2, b.nombre AS nombre2, b.apellido AS apellido2,
-               c.idEntrenador AS id3, c.nombre AS nombre3, c.apellido AS apellido3
+        MATCH (yo:Entrenador {idEntrenador: $idEntrenador})-[:TIENE]->(p:Pokemon)
+        MATCH (otro:Entrenador)-[:TIENE]->(p)
+        WHERE otro.idEntrenador <> $idEntrenador
+          AND NOT (yo)-[:ES_AMIGO_DE]-(otro)
+        RETURN DISTINCT otro.idEntrenador AS idEntrenador,
+               otro.nombre AS nombre,
+               otro.apellido AS apellido,
+               count(DISTINCT p) AS pokemons_en_comun,
+               collect(DISTINCT p.nombre) AS nombres_pokemons
+        ORDER BY pokemons_en_comun DESC
         LIMIT $limite
         """
         with self.conn.obtener_session() as sesion:
-            resultado = sesion.run(consulta, limite=limite)
-            triangulos = []
+            resultado = sesion.run(consulta, idEntrenador=idEntrenador, limite=limite)
+            rivales = []
             for record in resultado:
-                triangulos.append({
-                    "entrenador1": {
-                        "idEntrenador": record["id1"],
-                        "nombre": record["nombre1"],
-                        "apellido": record["apellido1"]
-                    },
-                    "entrenador2": {
-                        "idEntrenador": record["id2"],
-                        "nombre": record["nombre2"],
-                        "apellido": record["apellido2"]
-                    },
-                    "entrenador3": {
-                        "idEntrenador": record["id3"],
-                        "nombre": record["nombre3"],
-                        "apellido": record["apellido3"]
-                    }
+                rivales.append({
+                    "idEntrenador": record["idEntrenador"],
+                    "nombre": record["nombre"],
+                    "apellido": record["apellido"],
+                    "pokemons_en_comun": record["pokemons_en_comun"],
+                    "nombres_pokemons": record["nombres_pokemons"]
                 })
-            return triangulos
+            return rivales
 
     def contar_estado_general(self):
         consulta = """

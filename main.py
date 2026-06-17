@@ -81,9 +81,9 @@ def neo4j_recomendar(id):
     return jsonify(resultado)
 
 
-@app.route("/neo4j/triangulos")
-def neo4j_triangulos():
-    resultado = neo4j_service.detectar_triangulos()
+@app.route("/neo4j/rivales/<idEntrenador>")
+def neo4j_rivales(idEntrenador):
+    resultado = neo4j_service.detectar_rivales(idEntrenador)
     return jsonify(resultado)
 
 
