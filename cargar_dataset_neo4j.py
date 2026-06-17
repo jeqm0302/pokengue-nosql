@@ -54,7 +54,6 @@ def leer_pokemons(ruta):
                 "tipo": tipo,
                 "peso": a_float(fila["Peso (kg)"]),
                 "altura": a_float(fila["Altura (m)"]),
-                "foto": fila["Foto"].strip(),
             })
     return pokemons
 
@@ -115,8 +114,7 @@ def cargar_pokemons(sesion, pokemons):
         p.nombre = fila.nombre,
         p.tipo = fila.tipo,
         p.peso = fila.peso,
-        p.altura = fila.altura,
-        p.foto = fila.foto
+        p.altura = fila.altura
     """
     sesion.run(consulta, filas=pokemons)
 
