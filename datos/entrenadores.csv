@@ -1,0 +1,101 @@
+idEntrenador,Nombre,Apellido,Medallas
+ENT-001,Nate,Berlitz,Pluma
+ENT-002,Ethan,Leon,"Roca, Calor"
+ENT-003,Lillie,Kabu,"Tierra, Ciénaga"
+ENT-004,Calem,Thompson,"Roca, Ciénaga"
+ENT-005,Ethan,Magnolia,Carmín
+ENT-006,Elio,Hulbury,"Pluma, Volcán"
+ENT-007,Elio,Wooloo,Ciénaga
+ENT-008,Marnie,Hulbury,"Calor, Lluvia, Mente"
+ENT-009,Chloe,Leon,"Viento, Insecto, Agua, Calor"
+ENT-010,Trevor,Allister,"Garra, Carmín, Trueno, Roca"
+ENT-011,Lana,Oleana,Roca
+ENT-012,Clemont,Acerola,"Carmín, Agua, Tóxico"
+ENT-013,Goh,Stow,"Alma, Fantasma"
+ENT-014,Clemont,Sonia,"Insecto, Alma, Agua"
+ENT-015,Trevor,Berlitz,"Lluvia, Arcoíris, Tóxico"
+ENT-016,Clemont,Melony,"Roca, Megapuerto, Agua"
+ENT-017,Chloe,Gabena,Mente
+ENT-018,Wally,Opal,"Agua, Garra"
+ENT-019,Lyra,Williams,"Roca, Trueno"
+ENT-020,Tierno,Harrison,"Roca, Glaciar"
+ENT-021,Shauna,Magnolia,"Lluvia, Insecto"
+ENT-022,Hau,Stow,Carmín
+ENT-023,Hau,Oak,"Mente, Balance, Fantasma, Garra"
+ENT-024,Lucas,Raihan,"Lluvia, Roca"
+ENT-025,Lucas,Nanu,Agua
+ENT-026,Silver,Maple,Tierra
+ENT-027,Ethan,Berlitz,"Piedra, Balance"
+ENT-028,Lillie,Oak,"Arcoíris, Calor, Tierra"
+ENT-029,Chloe,Williams,"Balance, Trueno"
+ENT-030,Brendan,Acerola,"Acero, Piedra"
+ENT-031,Tierno,Berlitz,Calor
+ENT-032,Barry,Williams,"Piedra, Ciénaga"
+ENT-033,Serena,Harrison,"Lluvia, Mente, Ciénaga, Roca"
+ENT-034,Silver,Juniper,"Trueno, Volcán, Calor"
+ENT-035,Rosa,Wooloo,"Roca, Trueno, Agua, Megapuerto"
+ENT-036,Kiawe,Oleana,"Acero, Balance"
+ENT-037,Rosa,Juniper,Ciénaga
+ENT-038,Ash,Ketchum,"Viento, Alma, Arcoíris, Piedra"
+ENT-039,Brendan,Bede,"Insecto, Ciénaga, Megapuerto, Fantasma"
+ENT-040,Barry,Wooloo,Tóxico
+ENT-041,Marnie,Maple,Trueno
+ENT-042,Misty,Gordie,"Garra, Piedra"
+ENT-043,Mallow,Allister,Lluvia
+ENT-044,Nate,Oak,"Volcán, Calor"
+ENT-045,Lucas,Mina,"Balance, Calor, Lluvia, Trueno"
+ENT-046,Lucas,Mina,"Mente, Tierra, Carmín, Ciénaga"
+ENT-047,Lana,Gabena,Roca
+ENT-048,Lillie,Melony,"Tierra, Roca"
+ENT-049,Wally,Wooloo,Tierra
+ENT-050,Shauna,Gabena,Ciénaga
+ENT-051,Gary,Gabena,Pluma
+ENT-052,Barry,Kiawe,"Calor, Lluvia, Garra"
+ENT-053,Serena,Nessa,"Insecto, Megapuerto"
+ENT-054,Ash,Allister,Mente
+ENT-055,Goh,Circhester,"Glaciar, Roca, Calor"
+ENT-056,Shauna,Kiawe,Roca
+ENT-057,Nate,Acerola,"Tóxico, Roca, Balance, Insecto"
+ENT-058,Hop,Nessa,Volcán
+ENT-059,Brendan,Opal,"Mente, Tierra, Fantasma, Alma"
+ENT-060,Nate,Opal,Arcoíris
+ENT-061,Sophocles,Mina,Agua
+ENT-062,Rosa,Moreau,"Viento, Ciénaga, Pluma, Megapuerto"
+ENT-063,Gloria,Magnolia,"Lluvia, Carmín, Alma, Insecto"
+ENT-064,Mallow,Juniper,"Balance, Piedra"
+ENT-065,Victor,Kukui,"Agua, Volcán, Garra"
+ENT-066,Clemont,Leon,"Megapuerto, Mente, Carmín"
+ENT-067,Serena,Sonia,"Tierra, Carmín, Fantasma"
+ENT-068,Calem,Gordie,"Tóxico, Tierra"
+ENT-069,Serena,Kukui,"Trueno, Arcoíris"
+ENT-070,Lyra,Mina,"Agua, Arcoíris"
+ENT-071,Ash,Wooloo,Fantasma
+ENT-072,Iris,Sonia,Glaciar
+ENT-073,Tierno,Galarian,"Piedra, Alma, Garra, Megapuerto"
+ENT-074,Ash,Thompson,"Pluma, Fantasma, Carmín, Viento"
+ENT-075,Hop,Williams,"Megapuerto, Pluma, Lluvia"
+ENT-076,Ash,Stow,"Piedra, Insecto, Acero, Ciénaga"
+ENT-077,Marnie,Bede,"Glaciar, Balance, Insecto, Roca"
+ENT-078,Goh,Berlitz,Roca
+ENT-079,Serena,Gabena,"Arcoíris, Alma, Mente, Acero"
+ENT-080,Tierno,Nanu,"Viento, Tóxico"
+ENT-081,Elio,Piers,"Arcoíris, Carmín, Garra, Viento"
+ENT-082,Chloe,Maple,"Calor, Fantasma, Tierra"
+ENT-083,Goh,Opal,"Roca, Agua"
+ENT-084,Gloria,Thompson,"Megapuerto, Volcán, Tierra"
+ENT-085,Brendan,Thompson,Glaciar
+ENT-086,Brendan,Moreau,"Carmín, Trueno, Acero, Ciénaga"
+ENT-087,Goh,Acerola,Arcoíris
+ENT-088,Brock,Kukui,"Viento, Ciénaga"
+ENT-089,Lana,Allister,Calor
+ENT-090,Misty,Kukui,"Piedra, Megapuerto, Viento"
+ENT-091,Nate,Kukui,"Arcoíris, Agua"
+ENT-092,Tierno,Galarian,"Pluma, Ciénaga"
+ENT-093,Ash,Kabu,"Carmín, Arcoíris, Balance, Piedra"
+ENT-094,Kiawe,Mina,"Lluvia, Carmín"
+ENT-095,Barry,Piers,"Calor, Megapuerto"
+ENT-096,Gloria,Wooloo,"Roca, Piedra, Tóxico"
+ENT-097,Goh,Harrison,"Fantasma, Roca"
+ENT-098,Ethan,Bede,"Trueno, Glaciar, Dinamo"
+ENT-099,Sophocles,Mina,Agua
+ENT-100,Chloe,Williams,Calor

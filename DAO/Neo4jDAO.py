@@ -215,8 +215,7 @@ class Neo4jDAO:
         CALL { MATCH (p:Pokemon) RETURN count(p) AS pokemons }
         CALL { MATCH ()-[r:TIENE]->() RETURN count(r) AS tiene }
         CALL { MATCH ()-[r:ES_AMIGO_DE]->() RETURN count(r) AS amistades }
-        CALL { MATCH ()-[r:ES_RIVAL_DE]->() RETURN count(r) AS rivalidades }
-        RETURN entrenadores, pokemons, tiene, amistades, rivalidades
+        RETURN entrenadores, pokemons, tiene, amistades
         """
         with self.conn.obtener_session() as sesion:
             resultado = sesion.run(consulta)

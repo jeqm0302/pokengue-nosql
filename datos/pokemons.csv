@@ -1,0 +1,51 @@
+idPokemon,Especie,Nombre,Peso (kg),Altura (m),Foto,Tipo
+POK-001,Larvesta,Larvesta,"29,7","1,04",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/636.png,"Bug, Fire"
+POK-002,Slowpoke,Slowpoke,"35,7","1,15",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/79.png,"Water, Psychic"
+POK-003,Toxel,Toxel,"11,27","0,4",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/848.png,"Electric, Poison"
+POK-004,Persian,Persian,"30,7","1,04",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/53.png,Normal
+POK-005,Ralts,Ralts,"6,4","0,37",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/280.png,"Psychic, Fairy"
+POK-006,Rowlet,Rowlet,"1,5","0,31",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/722.png,"Grass, Flying"
+POK-007,Salandit,Salandit,"4,59","0,64",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/757.png,"Poison, Fire"
+POK-008,Bronzor,Bronzor,"62,67","0,47",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/436.png,"Steel, Psychic"
+POK-009,Chikorita,Chikorita,"5,93","0,97",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/152.png,Grass
+POK-010,Frillish-male,Frillish-male,"32,48","1,24",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/592.png,"Water, Ghost"
+POK-011,Bellsprout,Bellsprout,"4,35","0,66",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/69.png,"Grass, Poison"
+POK-012,Cofagrigus,Cofagrigus,"74,06","1,85",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/563.png,Ghost
+POK-013,Cryogonal,Cryogonal,"153,33","1,19",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/615.png,Ice
+POK-014,Bagon,Bagon,"45,78","0,56",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/371.png,Dragon
+POK-015,Noivern,Noivern,"86,06","1,43",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/715.png,"Flying, Dragon"
+POK-016,Throh,Throh,"51,43","1,36",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/538.png,Fighting
+POK-017,Alomomola,Alomomola,"31,87","1,09",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/594.png,Water
+POK-018,Grapploct,Grapploct,"36,8","1,72",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/853.png,Fighting
+POK-019,Breloom,Breloom,"39,52","1,27",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/286.png,"Grass, Fighting"
+POK-020,Ariados,Ariados,"35,28","1,01",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/168.png,"Bug, Poison"
+POK-021,Budew,Budew,"1,12","0,21",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/406.png,"Grass, Poison"
+POK-022,Rapidash,Rapidash,"93,66","1,7",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/78.png,Fire
+POK-023,Graveler,Graveler,"95,56","0,91",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/75.png,"Rock, Ground"
+POK-024,Aerodactyl,Aerodactyl,"56,87","1,8",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/142.png,"Rock, Flying"
+POK-025,Tropius,Tropius,"91,92","2,19",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/357.png,"Grass, Flying"
+POK-026,Ivysaur,Ivysaur,"13,17","0,98",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/2.png,"Grass, Poison"
+POK-027,Igglybuff,Igglybuff,"0,97","0,29",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/174.png,"Normal, Fairy"
+POK-028,Smeargle,Smeargle,"61,73","1,29",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/235.png,Normal
+POK-029,Crabrawler,Crabrawler,"7,03","0,59",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/739.png,Fighting
+POK-030,Decidueye,Decidueye,"33,33","1,56",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/724.png,"Grass, Ghost"
+POK-031,Fomantis,Fomantis,"1,53","0,27",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/753.png,Grass
+POK-032,Noivern,Noivern,"93,48","1,54",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/715.png,"Flying, Dragon"
+POK-033,Weavile,Weavile,"34,19","1,01",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/461.png,"Dark, Ice"
+POK-034,Seel,Seel,"83,72","1,16",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/86.png,Water
+POK-035,Drednaw,Drednaw,"126,78","0,9",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/834.png,"Water, Rock"
+POK-036,Magmar,Magmar,"47,86","1,34",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/126.png,Fire
+POK-037,Drapion,Drapion,"66,1","1,3",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/452.png,"Poison, Dark"
+POK-038,Aipom,Aipom,"10,75","0,74",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/190.png,Normal
+POK-039,Hoppip,Hoppip,"0,51","0,4",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/187.png,"Grass, Flying"
+POK-040,Mienfoo,Mienfoo,"18,59","0,92",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/619.png,Fighting
+POK-041,Urshifu-single-strike,Urshifu-single-strike,"107,07","1,77",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/892.png,"Fighting, Dark"
+POK-042,Pachirisu,Pachirisu,"3,52","0,43",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/417.png,Electric
+POK-043,Venipede,Venipede,"5,74","0,39",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/543.png,"Bug, Poison"
+POK-044,Sewaddle,Sewaddle,"2,51","0,29",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/540.png,"Bug, Grass"
+POK-045,Sewaddle,Sewaddle,"2,42","0,32",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/540.png,"Bug, Grass"
+POK-046,Mothim,Mothim,"23,69","0,81",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/414.png,"Bug, Flying"
+POK-047,Mantine,Mantine,"224,5","2,07",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/226.png,"Water, Flying"
+POK-048,Porygon-z,Porygon-z,"35,81","0,89",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/474.png,Normal
+POK-049,Sigilyph,Sigilyph,"13,35","1,49",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/561.png,"Psychic, Flying"
+POK-050,Grubbin,Grubbin,"4,32","0,41",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/736.png,Bug
