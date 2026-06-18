@@ -2,30 +2,22 @@ import csv
 import os
 from neo4j import GraphDatabase
 
-# ======================================================================
-# CONFIGURACION
-# ======================================================================
 URI = "neo4j://127.0.0.1:7687"
 USER = "neo4j"
 PASSWORD = "pokengue"
 
-# Si esta en True, BORRA todos los datos de Neo4j antes de cargar.
 LIMPIAR_PRIMERO = True
 
 CARPETA_DATOS = "datos"
 
 
 def a_float(valor):
-    """Convierte a float manejando coma como separador decimal."""
     try:
         return float(str(valor).replace(",", "."))
     except (ValueError, TypeError):
         return None
 
 
-# ======================================================================
-# LECTURA DE LOS CSV (formato del Sheet del equipo)
-# ======================================================================
 def leer_entrenadores(ruta):
     entrenadores = []
     with open(ruta, encoding="utf-8") as archivo:
@@ -81,9 +73,6 @@ def leer_amistades(ruta):
     return amistades
 
 
-# ======================================================================
-# CARGA EN NEO4J (UNWIND para eficiencia)
-# ======================================================================
 def crear_constraints(sesion):
     sesion.run(
         "CREATE CONSTRAINT entrenador_id_unico IF NOT EXISTS "
@@ -140,9 +129,6 @@ def cargar_amistades(sesion, amistades):
     sesion.run(consulta, filas=amistades)
 
 
-# ======================================================================
-# VERIFICACION POST-CARGA
-# ======================================================================
 def contar_estado(sesion):
     consulta = """
     CALL () { MATCH (e:Entrenador) RETURN count(e) AS entrenadores }
@@ -172,9 +158,6 @@ def buscar_buenos_ejemplos_demo(sesion):
     return [registro.data() for registro in sesion.run(consulta)]
 
 
-# ======================================================================
-# MAIN
-# ======================================================================
 def main():
     ruta_entrenadores = os.path.join(CARPETA_DATOS, "entrenadores.csv")
     ruta_pokemons = os.path.join(CARPETA_DATOS, "pokemons.csv")
