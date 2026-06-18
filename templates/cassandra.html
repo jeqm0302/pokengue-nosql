@@ -218,8 +218,12 @@
               <input id="hora" type="time" required />
             </div>
           </div>
-          <label for="resultado">Resultado</label>
-          <input id="resultadoInput" type="text" placeholder="Ash ganó" required />
+          <label for="resultadoInput">Resultado</label>
+          <select id="resultadoInput" required>
+            <option value="">-- Selecciona un resultado --</option>
+            <option value="Ganador J1">Ganador J1</option>
+            <option value="Ganador J2">Ganador J2</option>
+          </select>
           <button type="submit">REGISTRAR COMBATE</button>
         </form>
       </div>
