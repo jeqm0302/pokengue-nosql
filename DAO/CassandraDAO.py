@@ -1,5 +1,6 @@
-from uuid import uuid4;
-from db.ConexionCassandra import ConexionCassandra;
+from uuid import uuid4
+from db.ConexionCassandra import ConexionCassandra
+from cassandra.query import BatchStatement
 
 class CassandraDAO:
     CREAR_TABLA_REGISTRO_COMBATES = """
@@ -14,8 +15,8 @@ class CassandraDAO:
             pokemon2    text,
             PRIMARY KEY (combate_id, fecha, hora))
             WITH CLUSTERING ORDER BY (fecha DESC, hora DESC);
-    """;
-    CREAR_TABLA_REGISTRO_COMBATE_POR_FECHA = """ 
+    """
+    CREAR_TABLA_REGISTRO_COMBATE_POR_FECHA = """
         CREATE TABLE IF NOT EXISTS registro_combates_por_fecha (
             combate_id  uuid, 
             fecha       date, 
@@ -25,9 +26,9 @@ class CassandraDAO:
             entrenador2 text, 
             PRIMARY KEY (fecha, hora, combate_id))
             WITH CLUSTERING ORDER BY (hora DESC, combate_id ASC);
-    """;
+    """
     CREAR_TABLA_REGISTRO_COMBATE_POR_JUGADOR_1 = """
-        CREATE TABLE IF NOT EXISTS  registro_combates_por_jugador_1 (
+        CREATE TABLE IF NOT EXISTS registro_combates_por_jugador_1 (
             combate_id  uuid, 
             fecha       date, 
             hora        time, 
@@ -36,9 +37,9 @@ class CassandraDAO:
             resultado   text, 
             PRIMARY KEY (entrenador1, fecha, combate_id)) 
             WITH CLUSTERING ORDER BY (fecha DESC, combate_id ASC);
-    """;
+    """
     CREAR_TABLA_REGISTRO_COMBATE_POR_JUGADOR_2 = """
-        CREATE TABLE IF NOT EXISTS  registro_combates_por_jugador_2 (
+        CREATE TABLE IF NOT EXISTS registro_combates_por_jugador_2 (
             combate_id  uuid, 
             fecha       date, 
             hora        time, 
@@ -47,42 +48,192 @@ class CassandraDAO:
             resultado   text, 
             PRIMARY KEY (entrenador2, fecha, combate_id)) 
             WITH CLUSTERING ORDER BY (fecha DESC, combate_id ASC);
-    """;
+    """
 
     def __init__(self):
-        self._sesion = ConexionCassandra().conectar();
-        self._sesion.execute(self.CREAR_TABLA_REGISTRO_COMBATES);
-        self._sesion.execute(self.CREAR_TABLA_REGISTRO_COMBATE_POR_JUGADOR_1);
-        self._sesion.execute(self.CREAR_TABLA_REGISTRO_COMBATE_POR_JUGADOR_2);
-        self._sesion.execute(self.CREAR_TABLA_REGISTRO_COMBATE_POR_FECHA);
+        self._sesion = ConexionCassandra().conectar()
+        self._sesion.execute(self.CREAR_TABLA_REGISTRO_COMBATES)
+        self._sesion.execute(self.CREAR_TABLA_REGISTRO_COMBATE_POR_JUGADOR_1)
+        self._sesion.execute(self.CREAR_TABLA_REGISTRO_COMBATE_POR_JUGADOR_2)
+        self._sesion.execute(self.CREAR_TABLA_REGISTRO_COMBATE_POR_FECHA)
 
-    """
-    def prueba1(self):
-        combate_id = uuid4();
+    def agregar(self, combate):
+        batch = BatchStatement()
 
-        query =
-        INSERT INTO registro_combates (
+        query1 = """
+        INSERT INTO registro_combates
+        (
             combate_id,
+            entrenador1,
+            entrenador2,
+            pokemon1,
+            pokemon2,
+            resultado,
+            fecha,
+            hora
+        )
+        VALUES (?,?,?,?,?,?,?,?)
+        """
+        batch.add(
+            query1,
+            (
+                combate.combate_id,
+                combate.entrenador1,
+                combate.entrenador2,
+                combate.pokemon1,
+                combate.pokemon2,
+                combate.resultado,
+                combate.fecha,
+                combate.hora,
+            )
+        )
+
+        query2 = """
+        INSERT INTO registro_combates_por_fecha
+        (
             fecha,
             hora,
+            combate_id,
             entrenador1,
+            resultado,
+            entrenador2
+        )
+        VALUES (?,?,?,?,?,?)
+        """
+        batch.add(
+            query2,
+            (
+                combate.fecha,
+                combate.hora,
+                combate.combate_id,
+                combate.entrenador1,
+                combate.resultado,
+                combate.entrenador2,
+            )
+        )
+
+        query3 = """
+        INSERT INTO registro_combates_por_jugador_1
+        (
+            entrenador1,
+            fecha,
+            combate_id,
             pokemon1,
             resultado,
-            entrenador2,
-            pokemon2
+            hora
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        ;
-        self._sesion.execute(query, (
-            combate_id,
-            "2026-06-12",
-            "15:30:00",
-            "Ash",
-            "Pikachu",
-            "Victoria",
-            "Gary",
-            "Blastoise"
-        ));
-        return str(combate_id);
+        VALUES (?,?,?,?,?,?)
         """
+        batch.add(
+            query3,
+            (
+                combate.entrenador1,
+                combate.fecha,
+                combate.combate_id,
+                combate.pokemon1,
+                combate.resultado,
+                combate.hora,
+            )
+        )
 
+        query4 = """
+        INSERT INTO registro_combates_por_jugador_2
+        (
+            entrenador2,
+            fecha,
+            combate_id,
+            pokemon2,
+            resultado,
+            hora
+        )
+        VALUES (?,?,?,?,?,?)
+        """
+        batch.add(
+            query4,
+            (
+                combate.entrenador2,
+                combate.fecha,
+                combate.combate_id,
+                combate.pokemon2,
+                combate.resultado,
+                combate.hora,
+            )
+        )
+
+        self._sesion.execute(batch)
+
+    def buscar_por_id(self, combate_id):
+        query = """
+        SELECT *
+        FROM registro_combates
+        WHERE combate_id = ?
+        """
+        return self._sesion.execute(query, (combate_id,))
+
+    def buscar_por_fecha(self, fecha):
+        query = """
+        SELECT *
+        FROM registro_combates_por_fecha
+        WHERE fecha = ?
+        """
+        return self._sesion.execute(query, (fecha,))
+
+    def buscar_por_jugador1(self, jugador):
+        query = """
+        SELECT *
+        FROM registro_combates_por_jugador_1
+        WHERE entrenador1 = ?
+        """
+        return self._sesion.execute(query, (jugador,))
+
+    def buscar_por_jugador2(self, jugador):
+        query = """
+        SELECT *
+        FROM registro_combates_por_jugador_2
+        WHERE entrenador2 = ?
+        """
+        return self._sesion.execute(query, (jugador,))
+
+    def eliminar(self, combate):
+        batch = BatchStatement()
+        batch.add(
+            """
+            DELETE FROM registro_combates
+            WHERE combate_id=?
+            """,
+            (combate.combate_id,)
+        )
+        batch.add(
+            """
+            DELETE FROM registro_combates_por_fecha
+            WHERE fecha=? AND hora=? AND combate_id=?
+            """,
+            (
+                combate.fecha,
+                combate.hora,
+                combate.combate_id,
+            )
+        )
+        batch.add(
+            """
+            DELETE FROM registro_combates_por_jugador_1
+            WHERE entrenador1=? AND fecha=? AND combate_id=?
+            """,
+            (
+                combate.entrenador1,
+                combate.fecha,
+                combate.combate_id,
+            )
+        )
+        batch.add(
+            """
+            DELETE FROM registro_combates_por_jugador_2
+            WHERE entrenador2=? AND fecha=? AND combate_id=?
+            """,
+            (
+                combate.entrenador2,
+                combate.fecha,
+                combate.combate_id,
+            )
+        )
+        self._sesion.execute(batch)
