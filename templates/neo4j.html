@@ -609,8 +609,13 @@
 
         let listaTexto = `<div>💡 Recomendaciones de amigos para `
                  + `<b>${esc(e.nombre)}</b> (<span class="num">${esc(e.idEntrenador)}</span>)</div><br>`;
+        const pista = `<span class="hint">➡️ Verificalo:<br>`
+          + `MATCH (yo:Entrenador {idEntrenador:'${esc(e.idEntrenador)}'})-[r1:ES_AMIGO_DE]-(amigo:Entrenador)-[r2:ES_AMIGO_DE]-(candidato:Entrenador)<br>`
+          + `WHERE candidato.idEntrenador &lt;&gt; '${esc(e.idEntrenador)}' AND NOT (yo)-[:ES_AMIGO_DE]-(candidato)<br>`
+          + `RETURN yo, r1, amigo, r2, candidato</span>`;
         if (recs.length === 0) {
           listaTexto += `<div class="muted">No hay amigos de amigos para recomendar.</div>`;
+          listaTexto += pista;
           mostrar(listaTexto);
         } else {
           recs.forEach((c, i) => {
@@ -618,6 +623,7 @@
                   + `(${esc(c.idEntrenador)}) - <span class="num">${esc(c.amigos_en_comun)}</span> `
                   + `amigo(s) en común</div>`;
           });
+          listaTexto += pista;
           mostrar(listaTexto);
         }
       } catch (e) { mostrarError("No se pudo conectar con el servidor"); }
@@ -636,8 +642,13 @@
         const rivales = r.data.rivales, cantidad = r.data.cantidad;
         let listaTexto = `<div>🔥 Rivales potenciales para `
                  + `<span class="num">${esc(r.data.idEntrenador)}</span></div><br>`;
+        const pista = `<span class="hint">➡️ Verificalo:<br>`
+          + `MATCH (yo:Entrenador {idEntrenador:'${esc(r.data.idEntrenador)}'})-[r1:TIENE]-&gt;(p:Pokemon)&lt;-[r2:TIENE]-(otro:Entrenador)<br>`
+          + `WHERE otro.idEntrenador &lt;&gt; '${esc(r.data.idEntrenador)}' AND NOT (yo)-[:ES_AMIGO_DE]-(otro)<br>`
+          + `RETURN yo, r1, p, r2, otro</span>`;
         if (cantidad === 0) {
           listaTexto += `<div class="muted">No se detectaron rivales potenciales.</div>`;
+          listaTexto += pista;
           mostrar(listaTexto);
         } else {
           rivales.forEach((c, i) => {
@@ -645,6 +656,7 @@
                   + `<div class="item"><span class="num">${esc(c.pokemons_en_comun)}</span> pokémon en común</div>`
                   + `<div class="item muted">${lista(c.nombres_pokemons)}</div>`;
           });
+          listaTexto += pista;
           mostrar(listaTexto);
         }
       } catch (e) { mostrarError("No se pudo conectar con el servidor"); }
