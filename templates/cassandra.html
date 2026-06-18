@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cassandra — Historial de Combates</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --red: #E3350D;
+      --purple: #a855f7;
+      --dark: #1a1a2e;
+      --yellow: #FFCB05;
+      --white: #f5f5f5;
+      --card-bg: rgba(22, 33, 62, 0.88);
+      --ok: #5fd66b;
+      --err: #ff7a5c;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: var(--dark);
+      color: var(--white);
+      font-family: 'Nunito', sans-serif;
+      min-height: 100vh;
+      padding: 1rem;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 20% 30%, rgba(168,85,247,0.18), transparent 35%),
+                  radial-gradient(circle at 85% 25%, rgba(255,203,5,0.14), transparent 32%);
+      z-index: 0;
+    }
+
+    .wrap { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .back {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.65rem;
+      color: var(--yellow);
+      text-decoration: none;
+      border: 2px solid rgba(255,203,5,0.4);
+      padding: 0.5rem 0.8rem;
+      border-radius: 10px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .back:hover { background: var(--yellow); color: var(--dark); }
+
+    .pokeball {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, var(--purple) 50%, var(--white) 50%);
+      border: 3px solid #111;
+      position: relative;
+      flex-shrink: 0;
+      animation: float 3s ease-in-out infinite;
+      box-shadow: 0 0 16px rgba(168,85,247,0.45);
+    }
+    .pokeball::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; height: 3px; background: #111; }
+    .pokeball::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 12px; height: 12px; border-radius: 50%; background: var(--white); border: 3px solid #111; }
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+
+    header h1 {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 1.1rem;
+      color: var(--yellow);
+      text-shadow: 2px 2px 0 var(--purple), -1px -1px 0 #111;
+      letter-spacing: 1px;
+      line-height: 1.4;
+    }
+
+    .cols {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .col-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.62rem;
+      color: var(--yellow);
+      margin-bottom: 0.7rem;
+      letter-spacing: 1px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid rgba(168,85,247,0.35);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .card h3 {
+      font-size: 0.92rem;
+      color: var(--yellow);
+      margin-bottom: 0.7rem;
+    }
+
+    label { display: block; font-size: 0.72rem; color: #c6c6d1; margin: 0.35rem 0 0.2rem; }
+    input[type="text"], input[type="datetime-local"], input[type="date"], input[type="time"], select {
+      width: 100%;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(168,85,247,0.4);
+      border-radius: 8px;
+      color: var(--white);
+      padding: 0.5rem 0.6rem;
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus { border-color: var(--yellow); }
+
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    button {
+      width: 100%;
+      margin-top: 0.75rem;
+      background: linear-gradient(180deg, var(--purple) 50%, #7c3aed 50%);
+      color: var(--white);
+      border: 2px solid #111;
+      border-radius: 24px;
+      padding: 0.55rem;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.7rem;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    button:hover { transform: translateY(-2px); box-shadow: 0 7px 18px rgba(168,85,247,0.35); }
+    button.danger { background: linear-gradient(180deg, #333 50%, #222 50%); }
+
+    .results-title { font-family: 'Press Start 2P', monospace; font-size: 0.65rem; color: var(--yellow); margin-bottom: 0.5rem; }
+    #resultado {
+      background: rgba(0,0,0,0.55);
+      border: 2px solid rgba(168,85,247,0.45);
+      border-radius: 12px;
+      padding: 1rem;
+      min-height: 260px;
+      overflow-y: auto;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: #e1e1f0;
+    }
+    #resultado::-webkit-scrollbar { width: 8px; }
+    #resultado::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.7); border-radius: 4px; }
+
+    .placeholder { color: #8f92a1; font-style: italic; }
+    .item { margin-bottom: 0.75rem; }
+    .muted { color: #8f92a1; }
+    .num { color: var(--yellow); font-weight: 700; }
+    .id-big { font-family: 'Press Start 2P', monospace; color: var(--yellow); display: inline-block; margin-top: 0.4rem; }
+    .ok-line { color: var(--ok); font-weight: 700; }
+    .err-line { color: var(--err); font-weight: 700; }
+    .hint { display: block; margin-top: 0.6rem; color: #a6b3ff; font-size: 0.82rem; }
+
+    .horizontal { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .stretch { flex: 1; min-width: 220px; }
+
+    @media (max-width: 980px) {
+      .cols { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <a class="back" href="/">← Volver</a>
+      <div class="pokeball"></div>
+      <h1>Cassandra — Historial de combates</h1>
+    </header>
+
+    <div class="cols">
+      <div class="card">
+        <div class="col-title">▸ REGISTRAR COMBATE</div>
+        <h3>📝 Guardar un combate nuevo</h3>
+        <form id="formRegistrar" onsubmit="registrarCombate(event)">
+          <div class="row2">
+            <div>
+              <label for="entrenador1">Entrenador 1</label>
+              <input id="entrenador1" type="text" placeholder="Ash" required />
+            </div>
+            <div>
+              <label for="pokemon1">Pokémon 1</label>
+              <input id="pokemon1" type="text" placeholder="Pikachu" required />
+            </div>
+          </div>
+          <div class="row2">
+            <div>
+              <label for="entrenador2">Entrenador 2</label>
+              <input id="entrenador2" type="text" placeholder="Misty" required />
+            </div>
+            <div>
+              <label for="pokemon2">Pokémon 2</label>
+              <input id="pokemon2" type="text" placeholder="Starmie" required />
+            </div>
+          </div>
+          <div class="row2">
+            <div>
+              <label for="fecha">Fecha</label>
+              <input id="fecha" type="date" required />
+            </div>
+            <div>
+              <label for="hora">Hora</label>
+              <input id="hora" type="time" required />
+            </div>
+          </div>
+          <label for="resultado">Resultado</label>
+          <input id="resultadoInput" type="text" placeholder="Ash ganó" required />
+          <button type="submit">REGISTRAR COMBATE</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="col-title">▸ CONSULTAS</div>
+        <h3>🔎 Buscar combate por ID</h3>
+        <form onsubmit="buscarPorId(event)">
+          <input id="buscarId" type="text" placeholder="UUID del combate" required />
+          <button type="submit">BUSCAR POR ID</button>
+        </form>
+
+        <h3 style="margin-top:1rem;">📅 Buscar por fecha</h3>
+        <form onsubmit="buscarPorFecha(event)">
+          <input id="buscarFecha" type="date" required />
+          <button type="submit">BUSCAR POR FECHA</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="col-title">▸ CONSULTAS POR ENTRENADOR</div>
+        <h3>👊 Entrenador 1</h3>
+        <form onsubmit="buscarPorJugador1(event)">
+          <input id="buscarJugador1" type="text" placeholder="Ash" required />
+          <button type="submit">BUSCAR JUGADOR 1</button>
+        </form>
+
+        <h3 style="margin-top:1rem;">👊 Entrenador 2</h3>
+        <form onsubmit="buscarPorJugador2(event)">
+          <input id="buscarJugador2" type="text" placeholder="Misty" required />
+          <button type="submit">BUSCAR JUGADOR 2</button>
+        </form>
+
+        <h3 style="margin-top:1rem;">🗑️ Eliminar combate</h3>
+        <form onsubmit="eliminarCombate(event)">
+          <input id="eliminarId" type="text" placeholder="UUID del combate" required />
+          <button type="submit" class="danger">ELIMINAR COMBATE</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="results-title">▸ RESULTADOS</div>
+    <div id="resultado"> <span class="placeholder">Aquí se muestran las respuestas y los combates.</span> </div>
+  </div>
+
+  <script>
+    const caja = document.getElementById("resultado");
+    const esc = (t) => t == null ? "" : String(t)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    function mostrar(html) { caja.innerHTML = html; caja.scrollTop = 0; }
+    function mostrarError(msg) { mostrar(`<div class="err-line">⚠️ ${esc(msg)}</div>`); }
+
+    function combateHtml(c) {
+      return `<div class="item"><strong>${esc(c.entrenador1)} (${esc(c.pokemon1)}) vs ${esc(c.entrenador2)} (${esc(c.pokemon2)})</strong><br>
+        Resultado: ${esc(c.resultado)}<br>
+        Fecha: ${esc(c.fecha)} · Hora: ${esc(c.hora)}<br>
+        ID: <span class="id-big">${esc(c.combate_id)}</span></div>`;
+    }
+
+    async function registrarCombate(ev) {
+      ev.preventDefault();
+      try {
+        const body = new URLSearchParams({
+          entrenador1: document.getElementById("entrenador1").value,
+          pokemon1: document.getElementById("pokemon1").value,
+          entrenador2: document.getElementById("entrenador2").value,
+          pokemon2: document.getElementById("pokemon2").value,
+          resultado: document.getElementById("resultadoInput").value,
+          fecha: document.getElementById("fecha").value,
+          hora: document.getElementById("hora").value,
+        });
+        const resp = await fetch("/cassandra/combate", { method: "POST", body });
+        const r = await resp.json();
+        if (!r.ok) return mostrarError(r.mensaje);
+        mostrar(`<div class="ok-line">✅ Combate guardado</div>${combateHtml(r.data)}`);
+      } catch (e) { mostrarError("No se pudo conectar con el servidor."); }
+    }
+
+    async function buscarPorId(ev) {
+      ev.preventDefault();
+      try {
+        const id = document.getElementById("buscarId").value.trim();
+        const resp = await fetch(`/cassandra/combate/${encodeURIComponent(id)}`);
+        const r = await resp.json();
+        if (!r.ok) return mostrarError(r.mensaje);
+        mostrar(combateHtml(r.data));
+      } catch (e) { mostrarError("No se pudo conectar con el servidor."); }
+    }
+
+    async function buscarPorFecha(ev) {
+      ev.preventDefault();
+      try {
+        const fecha = document.getElementById("buscarFecha").value;
+        const resp = await fetch(`/cassandra/fecha?fecha=${encodeURIComponent(fecha)}`);
+        const r = await resp.json();
+        if (!r.ok) return mostrarError(r.mensaje);
+        mostrar(r.data.length === 0 ? `<div class="muted">No hay combates en esa fecha.</div>` : r.data.map(combateHtml).join(""));
+      } catch (e) { mostrarError("No se pudo conectar con el servidor."); }
+    }
+
+    async function buscarPorJugador1(ev) {
+      ev.preventDefault();
+      try {
+        const jugador = document.getElementById("buscarJugador1").value.trim();
+        const resp = await fetch(`/cassandra/jugador1/${encodeURIComponent(jugador)}`);
+        const r = await resp.json();
+        if (!r.ok) return mostrarError(r.mensaje);
+        mostrar(r.data.length === 0 ? `<div class="muted">No se encontraron combates para ${esc(jugador)}.</div>` : r.data.map(combateHtml).join(""));
+      } catch (e) { mostrarError("No se pudo conectar con el servidor."); }
+    }
+
+    async function buscarPorJugador2(ev) {
+      ev.preventDefault();
+      try {
+        const jugador = document.getElementById("buscarJugador2").value.trim();
+        const resp = await fetch(`/cassandra/jugador2/${encodeURIComponent(jugador)}`);
+        const r = await resp.json();
+        if (!r.ok) return mostrarError(r.mensaje);
+        mostrar(r.data.length === 0 ? `<div class="muted">No se encontraron combates para ${esc(jugador)}.</div>` : r.data.map(combateHtml).join(""));
+      } catch (e) { mostrarError("No se pudo conectar con el servidor."); }
+    }
+
+    async function eliminarCombate(ev) {
+      ev.preventDefault();
+      try {
+        const id = document.getElementById("eliminarId").value.trim();
+        const resp = await fetch(`/cassandra/combate/${encodeURIComponent(id)}`, { method: "DELETE" });
+        const r = await resp.json();
+        if (!r.ok) return mostrarError(r.mensaje);
+        mostrar(`<div class="ok-line">🗑️ Combate eliminado</div><div>ID: <span class="id-big">${esc(id)}</span></div>`);
+      } catch (e) { mostrarError("No se pudo conectar con el servidor."); }
+    }
+  </script>
+</body>
+</html>

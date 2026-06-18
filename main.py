@@ -3,14 +3,15 @@ from pokeapi import get_pokemon, get_lista_pokemons
 from services.Neo4jService import Neo4jService
 from DAO.CassandraDAO import CassandraDAO
 from DAO.RedisDAO import RedisDAO
+from modelos.RegistroCombate import RegistroCombate
+from uuid import UUID, uuid4
+from datetime import date, time
 
 app = Flask(__name__)
 neo4j_service = Neo4jService()
 redis_dao = RedisDAO()
 from sheets import get_entrenadores, get_pokemons_domesticados
 from pymongo import MongoClient
-
-app = Flask(__name__)
 
 client = MongoClient("mongodb://localhost:27017/")
 db     = client["pokengue"]
@@ -92,15 +93,144 @@ def neo4j_estado():
     resultado = neo4j_service.obtener_estado()
     return jsonify(resultado)
 
-"""
+@app.route("/cassandra")
+def cassandra_home():
+    """Renderiza la página de demo de Cassandra."""
+    return render_template("cassandra.html")
+
+@app.route("/cassandra/estado")
+def cassandra_estado():
+    try:
+        cassandra_dao._sesion.execute("SELECT release_version FROM system.local")
+        return jsonify({"ok": True, "data": {"conectado": True}, "mensaje": "Cassandra conectada"})
+    except Exception as e:
+        return jsonify({"ok": False, "data": None,
+                        "mensaje": f"Error al conectar con Cassandra: {e}"})
+
+
+def _combate_a_dict(fila):
+    if fila is None:
+        return None
+    return {
+        "combate_id": str(fila.combate_id),
+        "fecha": fila.fecha.isoformat() if getattr(fila, "fecha", None) else None,
+        "hora": fila.hora.isoformat() if getattr(fila, "hora", None) else None,
+        "entrenador1": fila.entrenador1,
+        "pokemon1": fila.pokemon1,
+        "resultado": fila.resultado,
+        "entrenador2": fila.entrenador2,
+        "pokemon2": fila.pokemon2,
+    }
+
 @app.route("/cassandra/combate", methods=["POST"])
 def cassandra_registrar_combate():
     try:
-        combate_id = cassandra_dao.prueba1()
-        return jsonify({"ok": True, "data": {"combate_id": combate_id}, "mensaje": "Combate registrado en Cassandra"})
+        entrenador1 = request.form.get("entrenador1", "").strip()
+        pokemon1 = request.form.get("pokemon1", "").strip()
+        entrenador2 = request.form.get("entrenador2", "").strip()
+        pokemon2 = request.form.get("pokemon2", "").strip()
+        resultado = request.form.get("resultado", "").strip()
+        fecha_texto = request.form.get("fecha", "").strip()
+        hora_texto = request.form.get("hora", "").strip()
+
+        if not all([entrenador1, pokemon1, entrenador2, pokemon2, resultado, fecha_texto, hora_texto]):
+            return jsonify({"ok": False, "data": None,
+                            "mensaje": "Faltan datos para registrar el combate."}), 400
+
+        try:
+            fecha_combate = date.fromisoformat(fecha_texto)
+            hora_combate = time.fromisoformat(hora_texto)
+        except ValueError:
+            return jsonify({"ok": False, "data": None,
+                            "mensaje": "Formato de fecha u hora inválido. Usa YYYY-MM-DD y HH:MM."}), 400
+
+        combate_id = uuid4()
+        combate = RegistroCombate(
+            combate_id, fecha_combate, hora_combate,
+            entrenador1, pokemon1, resultado,
+            entrenador2, pokemon2,
+        )
+        cassandra_dao.agregar(combate)
+        return jsonify({"ok": True, "data": _combate_a_dict(combate),
+                        "mensaje": "Combate registrado en Cassandra"})
     except Exception as e:
-        return jsonify({"ok": False, "data": None, "mensaje": str(e)}), 500
-"""
+        return jsonify({"ok": False, "data": None,
+                        "mensaje": str(e)}), 500
+
+@app.route("/cassandra/combate/<combate_id>")
+def cassandra_buscar_por_id(combate_id):
+    try:
+        rows = cassandra_dao.buscar_por_id(UUID(combate_id))
+        fila = next(iter(rows), None)
+        if fila is None:
+            return jsonify({"ok": False, "data": None,
+                            "mensaje": f"No se encontró combate con id {combate_id}."}), 404
+        return jsonify({"ok": True, "data": _combate_a_dict(fila),
+                        "mensaje": "Combate encontrado."})
+    except Exception as e:
+        return jsonify({"ok": False, "data": None,
+                        "mensaje": str(e)}), 500
+
+@app.route("/cassandra/fecha")
+def cassandra_buscar_por_fecha():
+    try:
+        fecha_texto = request.args.get("fecha", "").strip()
+        if not fecha_texto:
+            return jsonify({"ok": False, "data": None,
+                            "mensaje": "Debés indicar una fecha como YYYY-MM-DD."}), 400
+        fecha_combate = date.fromisoformat(fecha_texto)
+        filas = list(cassandra_dao.buscar_por_fecha(fecha_combate))
+        return jsonify({"ok": True,
+                        "data": [_combate_a_dict(f) for f in filas],
+                        "mensaje": f"Se encontraron {len(filas)} combates en {fecha_texto}."})
+    except ValueError:
+        return jsonify({"ok": False, "data": None,
+                        "mensaje": "Formato de fecha inválido. Usa YYYY-MM-DD."}), 400
+    except Exception as e:
+        return jsonify({"ok": False, "data": None,
+                        "mensaje": str(e)}), 500
+
+@app.route("/cassandra/jugador1/<jugador>")
+def cassandra_buscar_por_jugador1(jugador):
+    try:
+        filas = list(cassandra_dao.buscar_por_jugador1(jugador))
+        return jsonify({"ok": True,
+                        "data": [_combate_a_dict(f) for f in filas],
+                        "mensaje": f"Se encontraron {len(filas)} combates para {jugador}."})
+    except Exception as e:
+        return jsonify({"ok": False, "data": None,
+                        "mensaje": str(e)}), 500
+
+@app.route("/cassandra/jugador2/<jugador>")
+def cassandra_buscar_por_jugador2(jugador):
+    try:
+        filas = list(cassandra_dao.buscar_por_jugador2(jugador))
+        return jsonify({"ok": True,
+                        "data": [_combate_a_dict(f) for f in filas],
+                        "mensaje": f"Se encontraron {len(filas)} combates para {jugador}."})
+    except Exception as e:
+        return jsonify({"ok": False, "data": None,
+                        "mensaje": str(e)}), 500
+
+@app.route("/cassandra/combate/<combate_id>", methods=["DELETE"])
+def cassandra_eliminar_combate(combate_id):
+    try:
+        rows = cassandra_dao.buscar_por_id(UUID(combate_id))
+        fila = next(iter(rows), None)
+        if fila is None:
+            return jsonify({"ok": False, "data": None,
+                            "mensaje": f"No se encontró combate con id {combate_id}."}), 404
+        combate = RegistroCombate(
+            UUID(combate_id), fila.fecha, fila.hora,
+            fila.entrenador1, fila.pokemon1, fila.resultado,
+            fila.entrenador2, fila.pokemon2,
+        )
+        cassandra_dao.eliminar(combate)
+        return jsonify({"ok": True, "data": {"combate_id": combate_id},
+                        "mensaje": "Combate eliminado de Cassandra."})
+    except Exception as e:
+        return jsonify({"ok": False, "data": None,
+                        "mensaje": str(e)}), 500
 
 @app.route("/pokedex")
 def cargar_pokedex():
