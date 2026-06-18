@@ -4,16 +4,11 @@ from pokeapi import get_pokemon, get_lista_pokemons
 from services.Neo4jService import Neo4jService
 from DAO.CassandraDAO import CassandraDAO
 from DAO.RedisDAO import RedisDAO
-<<<<<<< Updated upstream
 from modelos.RegistroCombate import RegistroCombate
 from uuid import uuid4
 from datetime import date, time
-
-=======
-from flask import request, jsonify, render_template
 from DAO.MongoDAO import EntrenadorDAO, PokemonDAO
 from bson import ObjectId
->>>>>>> Stashed changes
 app = Flask(__name__)
 neo4j_service = Neo4jService()
 redis_dao = RedisDAO()
@@ -29,19 +24,9 @@ cassandra_dao = CassandraDAO()
 def index():
     return render_template("index.html")
 
-# ---------------------------------------------------------------
-# Importar arriba en main.py junto al resto de imports:
-# from DAO.MongoDAO import EntrenadorDAO, PokemonDAO
-# ---------------------------------------------------------------
-
-from flask import request, jsonify, render_template
-from DAO.MongoDAO import EntrenadorDAO, PokemonDAO
-from bson import ObjectId
-
 entrenador_dao = EntrenadorDAO()
 pokemon_dao    = PokemonDAO()
 
-# Helper para limpiar _id de Mongo antes de serializar
 def _limpiar(docs):
     if docs is None:
         return None
@@ -53,16 +38,10 @@ def _limpiar(docs):
     return docs
 
 
-# ---------------------------------------------------------------
-# Rutas MongoDB
-# ---------------------------------------------------------------
-
 @app.route("/mongo")
 def mongo_home():
     return render_template("mongo.html")
 
-
-# ── Entrenadores ──────────────────────────────────────────────
 
 @app.route("/mongo/entrenadores")
 def mongo_entrenadores():
@@ -86,8 +65,6 @@ def mongo_entrenadores():
     except Exception as e:
         return jsonify({"ok": False, "data": None, "mensaje": str(e)}), 500
 
-
-# ── Pokémons ──────────────────────────────────────────────────
 
 @app.route("/mongo/pokemons")
 def mongo_pokemons():
@@ -133,10 +110,6 @@ def pokemon(nombre_o_id):
 
 
 
-# ----------------------------------------------------------------------
-# Rutas Neo4j (Red social Pokémon)
-# Todas devuelven el mismo formato: {"ok": bool, "data": ..., "mensaje": str}
-# ----------------------------------------------------------------------
 @app.route("/neo4j")
 def neo4j_home():
     """Renderiza la página de la demo de Neo4j."""
@@ -442,9 +415,6 @@ def cargar_pokemons_domesticados():
     })
 
 
-# ----------------------------------------------------------------------
-# Rutas Redis (Configuración y preferencias de entrenadores)
-# ----------------------------------------------------------------------
 @app.route("/redis")
 def redis_home():
     """Renderiza la página de la demo de Redis."""
