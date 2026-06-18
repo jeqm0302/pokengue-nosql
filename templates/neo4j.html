@@ -674,6 +674,10 @@
           <div class="item">• Pokémon: <span class="num" data-valor="${esc(d.pokemons)}">0</span></div>
           <div class="item">• Relaciones TIENE: <span class="num" data-valor="${esc(d.tiene)}">0</span></div>
           <div class="item">• Amistades: <span class="num" data-valor="${esc(d.amistades)}">0</span></div>
+          <span class="hint">⚡ Para visualizar el grafo en Neo4j (límite de muestra):<br>
+          MATCH (n)-[r]-(m)<br>
+          RETURN n, r, m<br>
+          LIMIT 150</span>
         `);
         animarNumeros();
       } catch (e) { mostrarError("No se pudo conectar con el servidor"); }
