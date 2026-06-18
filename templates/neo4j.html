@@ -29,7 +29,6 @@
       position: relative;
     }
 
-    /* Fondo con degradados radiales (igual estética que index) */
     body::before {
       content: '';
       position: fixed;
@@ -41,7 +40,6 @@
 
     .wrap { position: relative; z-index: 1; max-width: 1300px; margin: 0 auto; }
 
-    /* ---------- Header ---------- */
     header {
       display: flex;
       align-items: center;
@@ -84,8 +82,6 @@
       letter-spacing: 1px;
       line-height: 1.5;
     }
-
-    /* ---------- Columnas ---------- */
     .cols {
       display: grid;
       grid-template-columns: 1.1fr 0.9fr 1fr;
@@ -200,7 +196,6 @@
     button:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(238,21,21,0.5), 0 0 20px rgba(227, 53, 13, 0.5); }
     button:active { transform: translateY(0); }
 
-    /* ---------- Resultados ---------- */
     .results-title {
       font-family: 'Press Start 2P', monospace;
       font-size: 0.6rem;
@@ -222,7 +217,6 @@
 
     .placeholder { color: #777; font-style: italic; }
 
-    /* ID destacado para la prueba anti-hardcoding */
     .id-big {
       font-family: 'Press Start 2P', monospace;
       font-size: 1.4rem;
@@ -318,16 +312,13 @@
 <body>
   <div id="estadoNeo4j" class="estado-neo4j">⏳ Neo4j…</div>
   <div class="wrap">
-    <!-- Header -->
     <header>
       <a class="back" href="/">← Volver</a>
       <span class="logo-telarana">🕸️</span>
       <h1>Neo4j — Red social Pokémon</h1>
     </header>
 
-    <!-- 3 columnas -->
     <div class="cols">
-      <!-- Columna 1: Cargar datos -->
       <div>
         <div class="col-title">CARGAR DATOS</div>
 
@@ -377,7 +368,6 @@
         </div>
       </div>
 
-      <!-- Columna 2: Relaciones -->
       <div>
         <div class="col-title">RELACIONES</div>
         <div class="card">
@@ -392,7 +382,6 @@
         </div>
       </div>
 
-      <!-- Columna 3: Consultas -->
       <div>
         <div class="col-title">CONSULTAS</div>
 
@@ -419,7 +408,6 @@
       </div>
     </div>
 
-    <!-- Área de resultados -->
     <div class="col-title">RESULTADOS</div>
     <div id="resultado">
       <span class="placeholder">Los resultados de cada operación aparecerán aquí. Cargá un dato desde los formularios y luego verificalo en Neo4j Desktop. ⚡</span>
@@ -480,7 +468,6 @@
 
     const caja = document.getElementById("resultado");
 
-    // Escapa texto del usuario para inyectarlo seguro en HTML
     function esc(t) {
       if (t === null || t === undefined) return "";
       return String(t)
@@ -510,13 +497,11 @@
       mostrar(`<div class="err-line">⚠️ ${esc(mensaje)}</div>`);
     }
 
-    // Formatea una lista (medallas/tipos) que puede venir como array
     function lista(arr) {
       if (!Array.isArray(arr) || arr.length === 0) return "—";
       return arr.map(esc).join(", ");
     }
 
-    // ---------- POSTs (cargas) ----------
     async function postForm(url, datos) {
       const body = new URLSearchParams(datos);
       const resp = await fetch(url, { method: "POST", body });
@@ -587,7 +572,8 @@
           <div><span class="id-big">${esc(d.idEntrenador)}</span> <span style="font-size:1.1rem">─TIENE→</span> <span class="id-big">${esc(d.idPokemon)}</span></div>
           <div>${d.en_equipo ? "✅ En el equipo activo" : "📦 Guardado en el PC"}</div>
           <span class="hint">➡️ Verificalo:<br>
-          MATCH (e {idEntrenador:'${esc(d.idEntrenador)}'})-[:TIENE]->(p) RETURN e,p</span>
+          MATCH (e:Entrenador {idEntrenador:'${esc(d.idEntrenador)}'})-[r:TIENE]->(p:Pokemon {idPokemon:'${esc(d.idPokemon)}'})<br>
+          RETURN e, r, p</span>
         `);
       } catch (e) { mostrarError("No se pudo conectar con el servidor"); }
     }
@@ -605,12 +591,12 @@
           <div class="ok-line">✅ Amistad creada</div>
           <div><span class="id-big">${esc(d.id1)}</span> 🤝 <span class="id-big">${esc(d.id2)}</span></div>
           <span class="hint">➡️ Verificalo:<br>
-          MATCH (a {idEntrenador:'${esc(d.id1)}'})-[:ES_AMIGO_DE]-(b) RETURN a,b</span>
+          MATCH (e1:Entrenador {idEntrenador:'${esc(d.id1)}'})-[r:ES_AMIGO_DE]-(e2:Entrenador {idEntrenador:'${esc(d.id2)}'})<br>
+          RETURN e1, r, e2</span>
         `);
       } catch (e) { mostrarError("No se pudo conectar con el servidor"); }
     }
 
-    // ---------- GETs (consultas) ----------
     async function recomendar(ev) {
       ev.preventDefault();
       try {
