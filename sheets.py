@@ -1,5 +1,6 @@
 import gspread
 from google.oauth2.service_account import Credentials
+from datetime import date, time
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets.readonly",
@@ -44,6 +45,25 @@ def get_entrenadores():
             "medallas":     [m.strip() for m in row["Medallas"].split(",") if m.strip()],
         })
     return entrenadores
+
+
+def get_combates():
+    """Lee datos/combates.csv y devuelve los datos listos para Cassandra."""
+    import csv
+    combates = []
+    with open("datos/combates.csv", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            combates.append({
+                "id":          row["idCombate"],
+                "fecha":       date.fromisoformat(row["Fecha"]),
+                "hora":        time.fromisoformat(row["Hora"].zfill(8)),
+                "entrenador1": row["idEntrenador1"],
+                "pokemon1":    row["idPokemon1"],
+                "resultado":   row["Resultado"],
+                "entrenador2": row["idEntrenador2"],
+                "pokemon2":    row["idPokemon2"],
+            })
+    return combates
 
 
 def get_pokemons_domesticados():

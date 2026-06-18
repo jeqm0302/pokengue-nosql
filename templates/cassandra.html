@@ -181,6 +181,7 @@
       <a class="back" href="/">← Volver</a>
       <div class="pokeball"></div>
       <h1>Cassandra — Historial de combates</h1>
+      <button type="button" onclick="cargarDesdeSheets()" style="width:auto;padding:0.5rem 1rem;margin-top:0;font-size:0.6rem;">⬇ CARGAR DESDE SHEETS</button>
     </header>
 
     <div class="cols">
@@ -230,7 +231,10 @@
 
       <div class="card">
         <div class="col-title">▸ CONSULTAS</div>
-        <h3>🔎 Buscar combate por ID</h3>
+        <h3>📋 Ver todos los combates</h3>
+        <button type="button" onclick="listarTodos()">VER TODOS</button>
+
+        <h3 style="margin-top:1rem;">🔎 Buscar combate por ID</h3>
         <form onsubmit="buscarPorId(event)">
           <input id="buscarId" type="text" placeholder="UUID del combate" required />
           <button type="submit">BUSCAR POR ID</button>
@@ -344,6 +348,27 @@
         const r = await resp.json();
         if (!r.ok) return mostrarError(r.mensaje);
         mostrar(r.data.length === 0 ? `<div class="muted">No se encontraron combates para ${esc(jugador)}.</div>` : r.data.map(combateHtml).join(""));
+      } catch (e) { mostrarError("No se pudo conectar con el servidor."); }
+    }
+
+    async function cargarDesdeSheets() {
+      mostrar(`<div class="muted">Cargando datos desde Google Sheets...</div>`);
+      try {
+        const resp = await fetch("/cassandra/cargar");
+        const r = await resp.json();
+        if (!r.ok) return mostrarError(r.mensaje);
+        mostrar(`<div class="ok-line">✅ ${r.mensaje}</div>`);
+      } catch (e) { mostrarError("No se pudo conectar con el servidor."); }
+    }
+
+    async function listarTodos() {
+      try {
+        const resp = await fetch("/cassandra/combates");
+        const r = await resp.json();
+        if (!r.ok) return mostrarError(r.mensaje);
+        mostrar(r.data.length === 0
+          ? `<div class="muted">No hay combates registrados.</div>`
+          : `<div class="ok-line" style="margin-bottom:0.5rem;">📋 ${r.data.length} combate(s) encontrado(s)</div>` + r.data.map(combateHtml).join(""));
       } catch (e) { mostrarError("No se pudo conectar con el servidor."); }
     }
 

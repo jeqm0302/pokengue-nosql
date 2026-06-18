@@ -1,11 +1,12 @@
 from uuid import uuid4
 from db.ConexionCassandra import ConexionCassandra
 from cassandra.query import BatchStatement
+from modelos.RegistroCombate import RegistroCombate
 
 class CassandraDAO:
     CREAR_TABLA_REGISTRO_COMBATES = """
         CREATE TABLE IF NOT EXISTS registro_combates (
-            combate_id  uuid, 
+            combate_id  text,
             fecha       date, 
             hora        time, 
             entrenador1 text, 
@@ -18,7 +19,7 @@ class CassandraDAO:
     """
     CREAR_TABLA_REGISTRO_COMBATE_POR_FECHA = """
         CREATE TABLE IF NOT EXISTS registro_combates_por_fecha (
-            combate_id  uuid, 
+            combate_id  text,
             fecha       date, 
             hora        time, 
             entrenador1 text, 
@@ -29,7 +30,7 @@ class CassandraDAO:
     """
     CREAR_TABLA_REGISTRO_COMBATE_POR_JUGADOR_1 = """
         CREATE TABLE IF NOT EXISTS registro_combates_por_jugador_1 (
-            combate_id  uuid, 
+            combate_id  text,
             fecha       date, 
             hora        time, 
             entrenador1 text, 
@@ -40,7 +41,7 @@ class CassandraDAO:
     """
     CREAR_TABLA_REGISTRO_COMBATE_POR_JUGADOR_2 = """
         CREATE TABLE IF NOT EXISTS registro_combates_por_jugador_2 (
-            combate_id  uuid, 
+            combate_id  text,
             fecha       date, 
             hora        time, 
             entrenador2 text, 
@@ -161,6 +162,31 @@ class CassandraDAO:
         )
 
         self._sesion.execute(batch)
+
+    def limpiar_todo(self):
+        self._sesion.execute("TRUNCATE registro_combates")
+        self._sesion.execute("TRUNCATE registro_combates_por_fecha")
+        self._sesion.execute("TRUNCATE registro_combates_por_jugador_1")
+        self._sesion.execute("TRUNCATE registro_combates_por_jugador_2")
+
+    def cargar_masivo(self, lista_dicts):
+        """
+        Recibe lista de dicts con claves: fecha, hora, entrenador1, pokemon1,
+        resultado, entrenador2, pokemon2. Genera un UUID por cada combate.
+        """
+        procesados = 0
+        for d in lista_dicts:
+            combate = RegistroCombate(
+                d.get("id", str(uuid4())), d["fecha"], d["hora"],
+                d["entrenador1"], d["pokemon1"], d["resultado"],
+                d["entrenador2"], d["pokemon2"],
+            )
+            self.agregar(combate)
+            procesados += 1
+        return procesados
+
+    def listar_todos(self):
+        return self._sesion.execute("SELECT * FROM registro_combates")
 
     def buscar_por_id(self, combate_id):
         query = """

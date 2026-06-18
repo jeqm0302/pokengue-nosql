@@ -4,13 +4,13 @@ from services.Neo4jService import Neo4jService
 from DAO.CassandraDAO import CassandraDAO
 from DAO.RedisDAO import RedisDAO
 from modelos.RegistroCombate import RegistroCombate
-from uuid import UUID, uuid4
+from uuid import uuid4
 from datetime import date, time
 
 app = Flask(__name__)
 neo4j_service = Neo4jService()
 redis_dao = RedisDAO()
-from sheets import get_entrenadores, get_pokemons_domesticados
+from sheets import get_entrenadores, get_pokemons_domesticados, get_combates
 from pymongo import MongoClient
 
 client = MongoClient("mongodb://localhost:27017/")
@@ -149,7 +149,7 @@ def _combate_a_dict(fila):
         result["entrenador1"] is None or result["pokemon1"] is None
     ):
         try:
-            registro_completo = next(iter(cassandra_dao.buscar_por_id(UUID(str(result["combate_id"])))), None)
+            registro_completo = next(iter(cassandra_dao.buscar_por_id(result["combate_id"])), None)
             if registro_completo is not None:
                 return {
                     "combate_id": str(_row_value(registro_completo, "combate_id")) if _row_value(registro_completo, "combate_id") is not None else None,
@@ -165,6 +165,28 @@ def _combate_a_dict(fila):
             pass
 
     return result
+
+@app.route("/cassandra/cargar")
+def cassandra_cargar():
+    try:
+        combates = get_combates()
+        cassandra_dao.limpiar_todo()
+        procesados = cassandra_dao.cargar_masivo(combates)
+        return jsonify({"ok": True,
+                        "data": {"procesados": procesados},
+                        "mensaje": f"Se cargaron {procesados} combates desde Google Sheets."})
+    except Exception as e:
+        return jsonify({"ok": False, "data": None, "mensaje": str(e)}), 500
+
+@app.route("/cassandra/combates")
+def cassandra_listar_todos():
+    try:
+        filas = list(cassandra_dao.listar_todos())
+        return jsonify({"ok": True,
+                        "data": [_combate_a_dict(f) for f in filas],
+                        "mensaje": f"Se encontraron {len(filas)} combates."})
+    except Exception as e:
+        return jsonify({"ok": False, "data": None, "mensaje": str(e)}), 500
 
 @app.route("/cassandra/combate", methods=["POST"])
 def cassandra_registrar_combate():
@@ -204,7 +226,7 @@ def cassandra_registrar_combate():
 @app.route("/cassandra/combate/<combate_id>")
 def cassandra_buscar_por_id(combate_id):
     try:
-        rows = cassandra_dao.buscar_por_id(UUID(combate_id))
+        rows = cassandra_dao.buscar_por_id(combate_id)
         fila = next(iter(rows), None)
         if fila is None:
             return jsonify({"ok": False, "data": None,
@@ -259,13 +281,13 @@ def cassandra_buscar_por_jugador2(jugador):
 @app.route("/cassandra/combate/<combate_id>", methods=["DELETE"])
 def cassandra_eliminar_combate(combate_id):
     try:
-        rows = cassandra_dao.buscar_por_id(UUID(combate_id))
+        rows = cassandra_dao.buscar_por_id(combate_id)
         fila = next(iter(rows), None)
         if fila is None:
             return jsonify({"ok": False, "data": None,
                             "mensaje": f"No se encontró combate con id {combate_id}."}), 404
         combate = RegistroCombate(
-            UUID(combate_id), fila.fecha, fila.hora,
+            combate_id, fila.fecha, fila.hora,
             fila.entrenador1, fila.pokemon1, fila.resultado,
             fila.entrenador2, fila.pokemon2,
         )
@@ -332,7 +354,6 @@ def cargar_pokemons_domesticados():
 # ----------------------------------------------------------------------
 # Rutas Redis (Configuración y preferencias de entrenadores)
 # ----------------------------------------------------------------------
-@app.route("/redis/config", methods=["POST"])
 @app.route("/redis")
 def redis_home():
     """Renderiza la página de la demo de Redis."""
