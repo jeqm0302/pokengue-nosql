@@ -72,7 +72,7 @@ class CassandraDAO:
             fecha,
             hora
         )
-        VALUES (?,?,?,?,?,?,?,?)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
         """
         batch.add(
             query1,
@@ -98,7 +98,7 @@ class CassandraDAO:
             resultado,
             entrenador2
         )
-        VALUES (?,?,?,?,?,?)
+        VALUES (%s,%s,%s,%s,%s,%s)
         """
         batch.add(
             query2,
@@ -122,7 +122,7 @@ class CassandraDAO:
             resultado,
             hora
         )
-        VALUES (?,?,?,?,?,?)
+        VALUES (%s,%s,%s,%s,%s,%s)
         """
         batch.add(
             query3,
@@ -146,7 +146,7 @@ class CassandraDAO:
             resultado,
             hora
         )
-        VALUES (?,?,?,?,?,?)
+        VALUES (%s,%s,%s,%s,%s,%s)
         """
         batch.add(
             query4,
@@ -166,7 +166,7 @@ class CassandraDAO:
         query = """
         SELECT *
         FROM registro_combates
-        WHERE combate_id = ?
+        WHERE combate_id = %s
         """
         return self._sesion.execute(query, (combate_id,))
 
@@ -174,7 +174,7 @@ class CassandraDAO:
         query = """
         SELECT *
         FROM registro_combates_por_fecha
-        WHERE fecha = ?
+        WHERE fecha = %s
         """
         return self._sesion.execute(query, (fecha,))
 
@@ -182,7 +182,7 @@ class CassandraDAO:
         query = """
         SELECT *
         FROM registro_combates_por_jugador_1
-        WHERE entrenador1 = ?
+        WHERE entrenador1 = %s
         """
         return self._sesion.execute(query, (jugador,))
 
@@ -190,7 +190,7 @@ class CassandraDAO:
         query = """
         SELECT *
         FROM registro_combates_por_jugador_2
-        WHERE entrenador2 = ?
+        WHERE entrenador2 = %s
         """
         return self._sesion.execute(query, (jugador,))
 
@@ -199,14 +199,14 @@ class CassandraDAO:
         batch.add(
             """
             DELETE FROM registro_combates
-            WHERE combate_id=?
+            WHERE combate_id=%s
             """,
             (combate.combate_id,)
         )
         batch.add(
             """
             DELETE FROM registro_combates_por_fecha
-            WHERE fecha=? AND hora=? AND combate_id=?
+            WHERE fecha=%s AND hora=%s AND combate_id=%s
             """,
             (
                 combate.fecha,
@@ -217,7 +217,7 @@ class CassandraDAO:
         batch.add(
             """
             DELETE FROM registro_combates_por_jugador_1
-            WHERE entrenador1=? AND fecha=? AND combate_id=?
+            WHERE entrenador1=%s AND fecha=%s AND combate_id=%s
             """,
             (
                 combate.entrenador1,
@@ -228,7 +228,7 @@ class CassandraDAO:
         batch.add(
             """
             DELETE FROM registro_combates_por_jugador_2
-            WHERE entrenador2=? AND fecha=? AND combate_id=?
+            WHERE entrenador2=%s AND fecha=%s AND combate_id=%s
             """,
             (
                 combate.entrenador2,

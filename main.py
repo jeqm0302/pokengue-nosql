@@ -108,19 +108,63 @@ def cassandra_estado():
                         "mensaje": f"Error al conectar con Cassandra: {e}"})
 
 
+def _row_value(fila, nombre):
+    if fila is None:
+        return None
+
+    try:
+        return fila[nombre]
+    except Exception:
+        pass
+
+    try:
+        return fila.get(nombre)
+    except Exception:
+        pass
+
+    try:
+        return getattr(fila, nombre)
+    except Exception:
+        return None
+
+
 def _combate_a_dict(fila):
     if fila is None:
         return None
-    return {
-        "combate_id": str(fila.combate_id),
-        "fecha": fila.fecha.isoformat() if getattr(fila, "fecha", None) else None,
-        "hora": fila.hora.isoformat() if getattr(fila, "hora", None) else None,
-        "entrenador1": fila.entrenador1,
-        "pokemon1": fila.pokemon1,
-        "resultado": fila.resultado,
-        "entrenador2": fila.entrenador2,
-        "pokemon2": fila.pokemon2,
+
+    combate_id = _row_value(fila, "combate_id")
+    result = {
+        "combate_id": str(combate_id) if combate_id is not None else None,
+        "fecha": str(_row_value(fila, "fecha")) if _row_value(fila, "fecha") is not None else None,
+        "hora": str(_row_value(fila, "hora")) if _row_value(fila, "hora") is not None else None,
+        "entrenador1": _row_value(fila, "entrenador1"),
+        "pokemon1": _row_value(fila, "pokemon1"),
+        "resultado": _row_value(fila, "resultado"),
+        "entrenador2": _row_value(fila, "entrenador2"),
+        "pokemon2": _row_value(fila, "pokemon2"),
     }
+
+    if result["combate_id"] is not None and (
+        result["entrenador2"] is None or result["pokemon2"] is None or
+        result["entrenador1"] is None or result["pokemon1"] is None
+    ):
+        try:
+            registro_completo = next(iter(cassandra_dao.buscar_por_id(UUID(str(result["combate_id"])))), None)
+            if registro_completo is not None:
+                return {
+                    "combate_id": str(_row_value(registro_completo, "combate_id")) if _row_value(registro_completo, "combate_id") is not None else None,
+                    "fecha": str(_row_value(registro_completo, "fecha")) if _row_value(registro_completo, "fecha") is not None else None,
+                    "hora": str(_row_value(registro_completo, "hora")) if _row_value(registro_completo, "hora") is not None else None,
+                    "entrenador1": _row_value(registro_completo, "entrenador1"),
+                    "pokemon1": _row_value(registro_completo, "pokemon1"),
+                    "resultado": _row_value(registro_completo, "resultado"),
+                    "entrenador2": _row_value(registro_completo, "entrenador2"),
+                    "pokemon2": _row_value(registro_completo, "pokemon2"),
+                }
+        except Exception:
+            pass
+
+    return result
 
 @app.route("/cassandra/combate", methods=["POST"])
 def cassandra_registrar_combate():
