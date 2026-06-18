@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MongoDB — Pokengue</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;700&family=Fredoka:wght@500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --red: #E3350D;
+      --orange: #ee1515;
+      --dark: #1a1a2e;
+      --yellow: #FFCB05;
+      --blue: #3B4CCA;
+      --white: #f5f5f5;
+      --card-bg: rgba(22, 33, 62, 0.85);
+      --green: #22c55e;
+      --ok: #5fd66b;
+      --err: #ff7a5c;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: var(--dark);
+      color: var(--white);
+      font-family: 'Nunito', sans-serif;
+      min-height: 100vh;
+      padding: 0.8rem 1.2rem 1.2rem;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at 20% 50%, rgba(34,197,94,0.1) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 20%, rgba(227,53,13,0.15) 0%, transparent 60%);
+      z-index: 0;
+    }
+
+    .wrap { position: relative; z-index: 1; max-width: 1300px; margin: 0 auto; }
+
+    /* Header */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .back {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.6rem;
+      color: var(--yellow);
+      text-decoration: none;
+      border: 2px solid rgba(255,203,5,0.4);
+      padding: 0.5rem 0.7rem;
+      border-radius: 8px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .back:hover { background: var(--yellow); color: var(--dark); }
+
+    .logo {
+      font-size: 2.5rem;
+      display: inline-block;
+      animation: brillo-hoja 2.5s ease-in-out infinite;
+      filter: drop-shadow(0 0 8px rgba(34,197,94,0.5));
+    }
+    @keyframes brillo-hoja {
+      0%, 100% { transform: rotate(-8deg); filter: drop-shadow(0 0 4px rgba(34,197,94,0.3)); }
+      50%      { transform: rotate(8deg);  filter: drop-shadow(0 0 12px rgba(34,197,94,0.8)); }
+    }
+
+    header h1 {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 1.1rem;
+      color: var(--yellow);
+      text-shadow: 2px 2px 0 var(--red), -1px -1px 0 #111;
+      letter-spacing: 1px;
+      line-height: 1.5;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+    }
+    .tab {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.55rem;
+      padding: 0.5rem 1rem;
+      border-radius: 8px 8px 0 0;
+      border: 2px solid rgba(255,255,255,0.1);
+      border-bottom: none;
+      cursor: pointer;
+      color: #888;
+      background: rgba(0,0,0,0.3);
+      transition: all 0.2s;
+      letter-spacing: 0.5px;
+    }
+    .tab:hover { color: var(--yellow); border-color: rgba(255,203,5,0.3); }
+    .tab.active { color: var(--yellow); background: var(--card-bg); border-color: rgba(34,197,94,0.4); }
+
+    /* Columnas */
+    .cols {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .col-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.6rem;
+      color: var(--orange);
+      margin-bottom: 0.6rem;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+    }
+    .col-title::before {
+      content: '';
+      display: inline-block;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, var(--red) 50%, var(--white) 50%);
+      border: 2px solid #111;
+      flex-shrink: 0;
+      box-shadow: 0 0 6px rgba(227,53,13,0.4);
+    }
+    .col-title::after {
+      content: '';
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--white);
+      border: 1.5px solid #111;
+      position: absolute;
+      left: 5px; top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid rgba(34,197,94,0.25);
+      border-radius: 10px;
+      padding: 0.8rem;
+      margin-bottom: 0.8rem;
+    }
+    .card h3 {
+      font-size: 0.85rem;
+      color: var(--yellow);
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+      text-shadow: 0 0 8px rgba(255,203,5,0.4), 1px 1px 0 rgba(0,0,0,0.5);
+      animation: brillo-titulo 3s ease-in-out infinite alternate;
+    }
+    @keyframes brillo-titulo {
+      from { text-shadow: 0 0 6px rgba(255,203,5,0.3), 1px 1px 0 rgba(0,0,0,0.5); }
+      to   { text-shadow: 0 0 16px rgba(255,203,5,0.8), 1px 1px 0 rgba(0,0,0,0.5); }
+    }
+
+    label { display: block; font-size: 0.7rem; color: #bbb; margin: 0.35rem 0 0.15rem; }
+
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(34,197,94,0.35);
+      border-radius: 6px;
+      color: var(--white);
+      padding: 0.4rem 0.5rem;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.8rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus { border-color: var(--yellow); }
+
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+
+    button {
+      width: 100%;
+      margin-top: 0.6rem;
+      background: linear-gradient(180deg, var(--orange) 50%, #b81010 50%);
+      color: var(--white);
+      border: 2px solid #111;
+      border-radius: 20px;
+      padding: 0.45rem;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.55rem;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    button:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(238,21,21,0.5); }
+    button:active { transform: translateY(0); }
+
+    /* Resultados */
+    .results-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.6rem;
+      color: var(--orange);
+      margin-bottom: 0.5rem;
+    }
+    #resultado {
+      background: rgba(0,0,0,0.55);
+      border: 2px solid rgba(34,197,94,0.4);
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+      min-height: 200px;
+      max-height: 420px;
+      overflow-y: auto;
+      font-size: 0.88rem;
+      line-height: 1.6;
+    }
+    #resultado::-webkit-scrollbar { width: 8px; }
+    #resultado::-webkit-scrollbar-thumb { background: var(--green); border-radius: 4px; }
+
+    .placeholder { color: #777; font-style: italic; }
+    .ok-line  { color: var(--ok);  font-weight: 700; }
+    .err-line { color: var(--err); font-weight: 700; }
+    .section-h { color: var(--yellow); font-weight: 700; margin-top: 0.6rem; display: block; }
+    .item { margin-left: 0.8rem; margin-bottom: 0.2rem; }
+    .muted { color: #999; }
+    .num   { color: var(--green); font-weight: 700; }
+    .id-tag {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.65rem;
+      color: var(--yellow);
+      background: rgba(255,203,5,0.1);
+      border: 1px solid rgba(255,203,5,0.3);
+      border-radius: 4px;
+      padding: 0.1rem 0.4rem;
+      display: inline-block;
+      margin-right: 0.3rem;
+    }
+
+    /* Tabla de resultados */
+    .tabla-resultados {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      margin-top: 0.5rem;
+    }
+    .tabla-resultados th {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.45rem;
+      color: var(--yellow);
+      text-align: left;
+      padding: 0.4rem 0.5rem;
+      border-bottom: 1px solid rgba(34,197,94,0.3);
+      letter-spacing: 0.5px;
+    }
+    .tabla-resultados td {
+      padding: 0.4rem 0.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      color: #ddd;
+      vertical-align: top;
+    }
+    .tabla-resultados tr:hover td { background: rgba(34,197,94,0.05); }
+    .tipo-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 999px;
+      background: rgba(59,76,202,0.3);
+      border: 1px solid rgba(59,76,202,0.5);
+      margin: 0.1rem;
+      color: #aac4ff;
+    }
+    .medalla-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 999px;
+      background: rgba(255,203,5,0.1);
+      border: 1px solid rgba(255,203,5,0.3);
+      margin: 0.1rem;
+      color: var(--yellow);
+    }
+    .foto-mini {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+
+    /* Panel oculto por tab */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .logo, .card h3 { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <a class="back" href="/">← Volver</a>
+    <span class="logo">🍃</span>
+    <h1>MongoDB — Pokengue</h1>
+  </header>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" onclick="cambiarTab('entrenadores')">👤 ENTRENADORES</div>
+    <div class="tab"        onclick="cambiarTab('pokemons')">🐉 POKÉMONS</div>
+    <div class="tab"        onclick="cambiarTab('cargar')">➕ CARGAR</div>
+  </div>
+
+  <!-- ===== PANEL ENTRENADORES ===== -->
+  <div id="panel-entrenadores" class="panel active">
+    <div class="cols">
+      <div>
+        <div class="col-title">FILTROS</div>
+
+        <div class="card">
+          <h3>🔎 Buscar por ID</h3>
+          <label>ID Entrenador</label>
+          <input type="text" id="ent_id" placeholder="ENT-001" />
+          <button onclick="buscar('entrenador','id')">BUSCAR</button>
+        </div>
+
+        <div class="card">
+          <h3>👤 Buscar por Nombre / Apellido</h3>
+          <label>Nombre</label>
+          <input type="text" id="ent_nombre" placeholder="Ash" />
+          <label>Apellido</label>
+          <input type="text" id="ent_apellido" placeholder="Ketchum" />
+          <button onclick="buscar('entrenador','nombre')">BUSCAR</button>
+        </div>
+
+        <div class="card">
+          <h3>🏅 Buscar por Medalla</h3>
+          <label>Medalla</label>
+          <input type="text" id="ent_medalla" placeholder="Roca" />
+          <button onclick="buscar('entrenador','medalla')">BUSCAR</button>
+        </div>
+
+        <div class="card">
+          <h3>📋 Listar todos</h3>
+          <button onclick="buscar('entrenador','todos')">VER TODOS</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="col-title">RESULTADOS</div>
+        <div id="resultado-entrenadores" class="resultado-box" style="
+          background: rgba(0,0,0,0.55);
+          border: 2px solid rgba(34,197,94,0.4);
+          border-radius: 10px;
+          padding: 1rem 1.2rem;
+          min-height: 400px;
+          max-height: 600px;
+          overflow-y: auto;
+          font-size: 0.88rem;
+          line-height: 1.6;
+        ">
+          <span class="placeholder">Usá los filtros para buscar entrenadores. 🏅</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PANEL POKÉMONS ===== -->
+  <div id="panel-pokemons" class="panel">
+    <div class="cols">
+      <div>
+        <div class="col-title">FILTROS</div>
+
+        <div class="card">
+          <h3>🔎 Buscar por ID</h3>
+          <label>ID Pokémon</label>
+          <input type="text" id="pok_id" placeholder="POK-010" />
+          <button onclick="buscar('pokemon','id')">BUSCAR</button>
+        </div>
+
+        <div class="card">
+          <h3>🐉 Buscar por Especie / Nombre</h3>
+          <label>Especie o Nombre</label>
+          <input type="text" id="pok_nombre" placeholder="Pikachu" />
+          <button onclick="buscar('pokemon','nombre')">BUSCAR</button>
+        </div>
+
+        <div class="card">
+          <h3>⚡ Buscar por Tipo</h3>
+          <label>Tipo</label>
+          <input type="text" id="pok_tipo" placeholder="Fire" />
+          <button onclick="buscar('pokemon','tipo')">BUSCAR</button>
+        </div>
+
+        <div class="card">
+          <h3>⚖️ Buscar por Rango de Peso</h3>
+          <div class="row2">
+            <div>
+              <label>Mínimo (kg)</label>
+              <input type="number" id="pok_peso_min" placeholder="0" step="any" />
+            </div>
+            <div>
+              <label>Máximo (kg)</label>
+              <input type="number" id="pok_peso_max" placeholder="500" step="any" />
+            </div>
+          </div>
+          <button onclick="buscar('pokemon','peso')">BUSCAR</button>
+        </div>
+
+        <div class="card">
+          <h3>📏 Buscar por Rango de Altura</h3>
+          <div class="row2">
+            <div>
+              <label>Mínimo (m)</label>
+              <input type="number" id="pok_altura_min" placeholder="0" step="any" />
+            </div>
+            <div>
+              <label>Máximo (m)</label>
+              <input type="number" id="pok_altura_max" placeholder="20" step="any" />
+            </div>
+          </div>
+          <button onclick="buscar('pokemon','altura')">BUSCAR</button>
+        </div>
+
+        <div class="card">
+          <h3>📋 Listar todos</h3>
+          <button onclick="buscar('pokemon','todos')">VER TODOS</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="col-title">RESULTADOS</div>
+        <div id="resultado-pokemons" class="resultado-box" style="
+          background: rgba(0,0,0,0.55);
+          border: 2px solid rgba(34,197,94,0.4);
+          border-radius: 10px;
+          padding: 1rem 1.2rem;
+          min-height: 400px;
+          max-height: 600px;
+          overflow-y: auto;
+          font-size: 0.88rem;
+          line-height: 1.6;
+        ">
+          <span class="placeholder">Usá los filtros para buscar pokémons. 🐉</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PANEL CARGAR ===== -->
+  <div id="panel-cargar" class="panel">
+    <div class="cols">
+
+      <!-- Cargar Entrenador -->
+      <div>
+        <div class="col-title">NUEVO ENTRENADOR</div>
+        <div class="card">
+          <h3>👤 Cargar Entrenador</h3>
+          <label>Nombre *</label>
+          <input type="text" id="new_ent_nombre" placeholder="Ash" />
+          <label>Apellido</label>
+          <input type="text" id="new_ent_apellido" placeholder="Ketchum" />
+          <label>Medallas (separadas por coma)</label>
+          <input type="text" id="new_ent_medallas" placeholder="Roca, Cascada, Trueno" />
+          <button onclick="cargarEntrenador()">CARGAR ENTRENADOR</button>
+        </div>
+        <div id="resultado-nuevo-ent" style="
+          background: rgba(0,0,0,0.55);
+          border: 2px solid rgba(34,197,94,0.4);
+          border-radius: 10px;
+          padding: 1rem 1.2rem;
+          min-height: 120px;
+          font-size: 0.88rem;
+          line-height: 1.6;
+        ">
+          <span class="placeholder">El resultado aparecerá acá. 🏅</span>
+        </div>
+      </div>
+
+      <!-- Cargar Pokémon -->
+      <div>
+        <div class="col-title">NUEVO POKÉMON</div>
+        <div class="card">
+          <h3>🐉 Cargar Pokémon</h3>
+          <label>Nombre a gusto *</label>
+          <input type="text" id="new_pok_nombre" placeholder="Chispita" />
+          <label>Especie (buscá y seleccioná) *</label>
+          <input type="text" id="pok_filtro_especie" placeholder="Buscar especie..." oninput="filtrarEspecies()" autocomplete="off" style="margin-bottom:0.3rem" />
+          <select id="new_pok_especie" size="6" onchange="previewEspecie()" style="
+            width:100%;
+            background:rgba(0,0,0,0.5);
+            border:1px solid rgba(34,197,94,0.35);
+            border-radius:6px;
+            color:#f5f5f5;
+            font-family:'Nunito',sans-serif;
+            font-size:0.8rem;
+            padding:0.3rem;
+            outline:none;
+          ">
+            <option value="">Cargando especies…</option>
+          </select>
+          <div id="pok_preview" style="
+            display:none;
+            margin-top:0.5rem;
+            text-align:center;
+            background:rgba(59,76,202,0.12);
+            border:1px solid rgba(59,76,202,0.3);
+            border-radius:8px;
+            padding:0.4rem;
+          ">
+            <img id="pok_preview_img" src="" alt="" style="width:72px;height:72px;object-fit:contain;image-rendering:pixelated;" />
+            <div id="pok_preview_label" style="font-size:0.75rem;color:#aac4ff;margin-top:0.2rem;"></div>
+          </div>
+          <button onclick="cargarPokemon()" style="margin-top:0.6rem">CARGAR POKÉMON</button>
+        </div>
+        <div id="resultado-nuevo-pok" style="
+          background: rgba(0,0,0,0.55);
+          border: 2px solid rgba(34,197,94,0.4);
+          border-radius: 10px;
+          padding: 1rem 1.2rem;
+          min-height: 120px;
+          font-size: 0.88rem;
+          line-height: 1.6;
+        ">
+          <span class="placeholder">El resultado aparecerá acá. 🐉</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+"use strict";
+
+function esc(t) {
+  if (t === null || t === undefined) return "";
+  return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function cambiarTab(tab) {
+  const tabs   = ['entrenadores', 'pokemons', 'cargar'];
+  const tabEls = document.querySelectorAll('.tab');
+  tabEls.forEach((t, i) => t.classList.toggle('active', tabs[i] === tab));
+  tabs.forEach(name => {
+    document.getElementById(`panel-${name}`).classList.toggle('active', name === tab);
+  });
+  if (tab === 'cargar' && todasLasEspecies.length === 0) cargarEspecies();
+}
+
+function mostrar(tipo, html) {
+  const caja = document.getElementById(`resultado-${tipo === 'entrenador' ? 'entrenadores' : 'pokemons'}`);
+  caja.innerHTML = html;
+  caja.scrollTop = 0;
+}
+
+function mostrarError(tipo, msg) {
+  mostrar(tipo, `<div class="err-line">⚠️ ${esc(msg)}</div>`);
+}
+
+function renderEntrenadores(lista) {
+  if (!lista || lista.length === 0) return `<div class="muted">No se encontraron entrenadores.</div>`;
+  let html = `<div class="ok-line" style="margin-bottom:0.5rem">✅ ${lista.length} resultado(s)</div>`;
+  html += `<table class="tabla-resultados">
+    <thead><tr>
+      <th>ID</th><th>NOMBRE</th><th>APELLIDO</th><th>MEDALLAS</th>
+    </tr></thead><tbody>`;
+  lista.forEach(e => {
+    const medallas = Array.isArray(e.medallas)
+      ? e.medallas.map(m => `<span class="medalla-badge">🏅 ${esc(m)}</span>`).join("")
+      : esc(e.medallas || "—");
+    html += `<tr>
+      <td><span class="id-tag">${esc(e.idEntrenador)}</span></td>
+      <td>${esc(e.nombre)}</td>
+      <td>${esc(e.apellido)}</td>
+      <td>${medallas}</td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  return html;
+}
+
+function renderPokemons(lista) {
+  if (!lista || lista.length === 0) return `<div class="muted">No se encontraron pokémons.</div>`;
+  let html = `<div class="ok-line" style="margin-bottom:0.5rem">✅ ${lista.length} resultado(s)</div>`;
+  html += `<table class="tabla-resultados">
+    <thead><tr>
+      <th>FOTO</th><th>ID</th><th>NOMBRE</th><th>TIPO</th><th>PESO</th><th>ALTURA</th>
+    </tr></thead><tbody>`;
+  lista.forEach(p => {
+    const tipos = Array.isArray(p.tipo)
+      ? p.tipo.map(t => `<span class="tipo-badge">${esc(t)}</span>`).join("")
+      : esc(p.tipo || "—");
+    const foto = p.foto ? `<img class="foto-mini" src="${esc(p.foto)}" alt="${esc(p.nombre)}" />` : "—";
+    html += `<tr>
+      <td>${foto}</td>
+      <td><span class="id-tag">${esc(p.idPokemon)}</span></td>
+      <td><b>${esc(p.nombre)}</b><br><span class="muted">${esc(p.especie)}</span></td>
+      <td>${tipos}</td>
+      <td>${esc(p.peso)} kg</td>
+      <td>${esc(p.altura)} m</td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  return html;
+}
+
+// ── Cargar entidades ─────────────────────────────────────────
+
+let todasLasEspecies = [];
+
+async function cargarEspecies() {
+  try {
+    const r = await (await fetch('/mongo/pokedex/especies')).json();
+    if (r.ok) { todasLasEspecies = r.data; renderEspecies(todasLasEspecies); }
+    else document.getElementById('new_pok_especie').innerHTML = '<option value="">Error al cargar especies</option>';
+  } catch(e) {
+    document.getElementById('new_pok_especie').innerHTML = '<option value="">No se pudo conectar</option>';
+  }
+}
+
+function renderEspecies(lista) {
+  const sel = document.getElementById('new_pok_especie');
+  if (!lista.length) { sel.innerHTML = '<option value="">Sin resultados</option>'; return; }
+  sel.innerHTML = lista.map(e =>
+    `<option value="${e.nroPokedex}" data-foto="${esc(e.foto || '')}">#${String(e.nroPokedex).padStart(3,'0')} ${esc(e.especie)}</option>`
+  ).join('');
+  previewEspecie();
+}
+
+function filtrarEspecies() {
+  const q = document.getElementById('pok_filtro_especie').value.trim().toLowerCase();
+  const lista = q
+    ? todasLasEspecies.filter(e => e.especie.toLowerCase().includes(q) || String(e.nroPokedex).includes(q))
+    : todasLasEspecies;
+  renderEspecies(lista);
+}
+
+function previewEspecie() {
+  const sel = document.getElementById('new_pok_especie');
+  const opt = sel.options[sel.selectedIndex];
+  const prev = document.getElementById('pok_preview');
+  if (!opt || !opt.value) { prev.style.display = 'none'; return; }
+  const foto = opt.getAttribute('data-foto');
+  if (foto) {
+    document.getElementById('pok_preview_img').src = foto;
+    document.getElementById('pok_preview_label').textContent = opt.text;
+    prev.style.display = 'block';
+  }
+}
+
+async function cargarEntrenador() {
+  const nombre   = document.getElementById('new_ent_nombre').value.trim();
+  const apellido = document.getElementById('new_ent_apellido').value.trim();
+  const medallas = document.getElementById('new_ent_medallas').value.trim();
+  const caja     = document.getElementById('resultado-nuevo-ent');
+
+  if (!nombre) { caja.innerHTML = `<div class="err-line">⚠️ El nombre es obligatorio.</div>`; return; }
+
+  try {
+    const r = await (await fetch('/mongo/entrenadores/nuevo', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({nombre, apellido, medallas}),
+    })).json();
+
+    if (!r.ok) { caja.innerHTML = `<div class="err-line">⚠️ ${esc(r.mensaje)}</div>`; return; }
+    const d = r.data;
+    const meds = (d.medallas || []).map(m => `<span class="medalla-badge">🏅 ${esc(m)}</span>`).join('') || '—';
+    caja.innerHTML = `
+      <div class="ok-line" style="margin-bottom:0.5rem">✅ ${esc(r.mensaje)}</div>
+      <table class="tabla-resultados"><tbody>
+        <tr><td class="muted">ID</td><td><span class="id-tag">${esc(d.idEntrenador)}</span></td></tr>
+        <tr><td class="muted">Nombre</td><td>${esc(d.nombre)} ${esc(d.apellido)}</td></tr>
+        <tr><td class="muted">Medallas</td><td>${meds}</td></tr>
+      </tbody></table>`;
+  } catch(e) { caja.innerHTML = `<div class="err-line">⚠️ No se pudo conectar con el servidor.</div>`; }
+}
+
+async function cargarPokemon() {
+  const nombre = document.getElementById('new_pok_nombre').value.trim();
+  const sel    = document.getElementById('new_pok_especie');
+  const nro    = sel.value;
+  const caja   = document.getElementById('resultado-nuevo-pok');
+
+  if (!nombre || !nro) { caja.innerHTML = `<div class="err-line">⚠️ Nombre y especie son obligatorios.</div>`; return; }
+
+  try {
+    const r = await (await fetch('/mongo/pokemons/nuevo', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({nombre, nroPokedex: parseInt(nro)}),
+    })).json();
+
+    if (!r.ok) { caja.innerHTML = `<div class="err-line">⚠️ ${esc(r.mensaje)}</div>`; return; }
+    const d = r.data;
+    const tipos = (d.tipo || []).map(t => `<span class="tipo-badge">${esc(t)}</span>`).join('') || '—';
+    const foto  = d.foto ? `<img class="foto-mini" src="${esc(d.foto)}" alt="${esc(d.nombre)}" style="width:56px;height:56px" />` : '';
+    caja.innerHTML = `
+      <div class="ok-line" style="margin-bottom:0.5rem">✅ ${esc(r.mensaje)}</div>
+      <table class="tabla-resultados"><tbody>
+        <tr><td class="muted">Foto</td><td>${foto}</td></tr>
+        <tr><td class="muted">ID</td><td><span class="id-tag">${esc(d.idPokemon)}</span></td></tr>
+        <tr><td class="muted">Nombre</td><td><b>${esc(d.nombre)}</b> <span class="muted">(${esc(d.especie)})</span></td></tr>
+        <tr><td class="muted">Tipo</td><td>${tipos}</td></tr>
+        <tr><td class="muted">Peso</td><td><span class="num">${d.peso}</span> kg</td></tr>
+        <tr><td class="muted">Altura</td><td><span class="num">${d.altura}</span> m</td></tr>
+      </tbody></table>`;
+  } catch(e) { caja.innerHTML = `<div class="err-line">⚠️ No se pudo conectar con el servidor.</div>`; }
+}
+
+async function buscar(tipo, filtro) {
+  let url = "";
+
+  if (tipo === "entrenador") {
+    if (filtro === "id") {
+      const id = document.getElementById("ent_id").value.trim();
+      if (!id) return mostrarError(tipo, "Ingresá un ID");
+      url = `/mongo/entrenadores?id=${encodeURIComponent(id)}`;
+    } else if (filtro === "nombre") {
+      const nombre  = document.getElementById("ent_nombre").value.trim();
+      const apellido = document.getElementById("ent_apellido").value.trim();
+      if (!nombre && !apellido) return mostrarError(tipo, "Ingresá nombre o apellido");
+      url = `/mongo/entrenadores?nombre=${encodeURIComponent(nombre)}&apellido=${encodeURIComponent(apellido)}`;
+    } else if (filtro === "medalla") {
+      const medalla = document.getElementById("ent_medalla").value.trim();
+      if (!medalla) return mostrarError(tipo, "Ingresá una medalla");
+      url = `/mongo/entrenadores?medalla=${encodeURIComponent(medalla)}`;
+    } else {
+      url = `/mongo/entrenadores`;
+    }
+  } else {
+    if (filtro === "id") {
+      const id = document.getElementById("pok_id").value.trim();
+      if (!id) return mostrarError(tipo, "Ingresá un ID");
+      url = `/mongo/pokemons?id=${encodeURIComponent(id)}`;
+    } else if (filtro === "nombre") {
+      const nombre = document.getElementById("pok_nombre").value.trim();
+      if (!nombre) return mostrarError(tipo, "Ingresá un nombre o especie");
+      url = `/mongo/pokemons?nombre=${encodeURIComponent(nombre)}`;
+    } else if (filtro === "tipo") {
+      const tipo_val = document.getElementById("pok_tipo").value.trim();
+      if (!tipo_val) return mostrarError(tipo, "Ingresá un tipo");
+      url = `/mongo/pokemons?tipo=${encodeURIComponent(tipo_val)}`;
+    } else if (filtro === "peso") {
+      const min = document.getElementById("pok_peso_min").value;
+      const max = document.getElementById("pok_peso_max").value;
+      url = `/mongo/pokemons?peso_min=${encodeURIComponent(min)}&peso_max=${encodeURIComponent(max)}`;
+    } else if (filtro === "altura") {
+      const min = document.getElementById("pok_altura_min").value;
+      const max = document.getElementById("pok_altura_max").value;
+      url = `/mongo/pokemons?altura_min=${encodeURIComponent(min)}&altura_max=${encodeURIComponent(max)}`;
+    } else {
+      url = `/mongo/pokemons`;
+    }
+  }
+
+  try {
+    const resp = await fetch(url);
+    const r = await resp.json();
+    if (!r.ok) return mostrarError(tipo, r.mensaje);
+    if (tipo === "entrenador") mostrar(tipo, renderEntrenadores(r.data));
+    else                       mostrar(tipo, renderPokemons(r.data));
+  } catch(e) {
+    mostrarError(tipo, "No se pudo conectar con el servidor");
+  }
+}
+</script>
+</body>
+</html>

@@ -1,12 +1,19 @@
+import random
 from flask import Flask, render_template,url_for, session, redirect, request, jsonify
 from pokeapi import get_pokemon, get_lista_pokemons
 from services.Neo4jService import Neo4jService
 from DAO.CassandraDAO import CassandraDAO
 from DAO.RedisDAO import RedisDAO
+<<<<<<< Updated upstream
 from modelos.RegistroCombate import RegistroCombate
 from uuid import uuid4
 from datetime import date, time
 
+=======
+from flask import request, jsonify, render_template
+from DAO.MongoDAO import EntrenadorDAO, PokemonDAO
+from bson import ObjectId
+>>>>>>> Stashed changes
 app = Flask(__name__)
 neo4j_service = Neo4jService()
 redis_dao = RedisDAO()
@@ -22,6 +29,99 @@ cassandra_dao = CassandraDAO()
 def index():
     return render_template("index.html")
 
+# ---------------------------------------------------------------
+# Importar arriba en main.py junto al resto de imports:
+# from DAO.MongoDAO import EntrenadorDAO, PokemonDAO
+# ---------------------------------------------------------------
+
+from flask import request, jsonify, render_template
+from DAO.MongoDAO import EntrenadorDAO, PokemonDAO
+from bson import ObjectId
+
+entrenador_dao = EntrenadorDAO()
+pokemon_dao    = PokemonDAO()
+
+# Helper para limpiar _id de Mongo antes de serializar
+def _limpiar(docs):
+    if docs is None:
+        return None
+    if isinstance(docs, list):
+        for d in docs:
+            d.pop("_id", None)
+        return docs
+    docs.pop("_id", None)
+    return docs
+
+
+# ---------------------------------------------------------------
+# Rutas MongoDB
+# ---------------------------------------------------------------
+
+@app.route("/mongo")
+def mongo_home():
+    return render_template("mongo.html")
+
+
+# ── Entrenadores ──────────────────────────────────────────────
+
+@app.route("/mongo/entrenadores")
+def mongo_entrenadores():
+    try:
+        id_ent  = request.args.get("id", "").strip()
+        nombre  = request.args.get("nombre", "").strip()
+        apellido = request.args.get("apellido", "").strip()
+        medalla = request.args.get("medalla", "").strip()
+
+        if id_ent:
+            resultado = entrenador_dao.buscar_por_id(id_ent)
+            data = _limpiar([resultado]) if resultado else []
+        elif nombre or apellido:
+            data = _limpiar(entrenador_dao.buscar_por_nombre(nombre, apellido))
+        elif medalla:
+            data = _limpiar(entrenador_dao.buscar_por_medalla(medalla))
+        else:
+            data = _limpiar(entrenador_dao.listar_todos())
+
+        return jsonify({"ok": True, "data": data, "mensaje": f"{len(data)} resultado(s)"})
+    except Exception as e:
+        return jsonify({"ok": False, "data": None, "mensaje": str(e)}), 500
+
+
+# ── Pokémons ──────────────────────────────────────────────────
+
+@app.route("/mongo/pokemons")
+def mongo_pokemons():
+    try:
+        id_pok     = request.args.get("id", "").strip()
+        nombre     = request.args.get("nombre", "").strip()
+        tipo       = request.args.get("tipo", "").strip()
+        peso_min   = request.args.get("peso_min", "").strip()
+        peso_max   = request.args.get("peso_max", "").strip()
+        altura_min = request.args.get("altura_min", "").strip()
+        altura_max = request.args.get("altura_max", "").strip()
+
+        if id_pok:
+            resultado = pokemon_dao.buscar_por_id(id_pok)
+            data = _limpiar([resultado]) if resultado else []
+        elif nombre:
+            data = _limpiar(pokemon_dao.buscar_por_nombre(nombre))
+        elif tipo:
+            data = _limpiar(pokemon_dao.buscar_por_tipo(tipo))
+        elif peso_min or peso_max:
+            mn = float(peso_min) if peso_min else None
+            mx = float(peso_max) if peso_max else None
+            data = _limpiar(pokemon_dao.buscar_por_peso(mn, mx))
+        elif altura_min or altura_max:
+            mn = float(altura_min) if altura_min else None
+            mx = float(altura_max) if altura_max else None
+            data = _limpiar(pokemon_dao.buscar_por_altura(mn, mx))
+        else:
+            data = _limpiar(pokemon_dao.listar_todos())
+
+        return jsonify({"ok": True, "data": data, "mensaje": f"{len(data)} resultado(s)"})
+    except Exception as e:
+        return jsonify({"ok": False, "data": None, "mensaje": str(e)}), 500
+
 @app.route("/pokemon/<nombre_o_id>")
 def pokemon(nombre_o_id):
     """Devuelve los datos de un Pokémon en JSON."""
@@ -31,15 +131,6 @@ def pokemon(nombre_o_id):
     return jsonify(data)
 
 
-@app.route("/pokemons")
-def lista_pokemons():
-    """Devuelve una lista paginada de Pokémon."""
-    limite = request.args.get("limite", 20, type=int)
-    offset = request.args.get("offset", 0, type=int)
-    data = get_lista_pokemons(limite, offset)
-    if data is None:
-        return jsonify({"error": "No se pudo obtener la lista"}), 500
-    return jsonify(data)
 
 
 # ----------------------------------------------------------------------
@@ -465,5 +556,73 @@ def redis_estado():
         return jsonify({"ok": False, "data": None,
                         "mensaje": f"Error al obtener estado: {e}"})
     
+@app.route("/mongo/pokedex/especies")
+def mongo_pokedex_especies():
+    try:
+        especies = list(db["pokedex"].find(
+            {}, {"_id": 0, "nroPokedex": 1, "especie": 1, "foto": 1}
+        ))
+        especies.sort(key=lambda x: x.get("nroPokedex", 0))
+        return jsonify({"ok": True, "data": especies})
+    except Exception as e:
+        return jsonify({"ok": False, "data": None, "mensaje": str(e)}), 500
+
+
+@app.route("/mongo/entrenadores/nuevo", methods=["POST"])
+def mongo_nuevo_entrenador():
+    try:
+        body     = request.get_json()
+        nombre   = body.get("nombre",   "").strip()
+        apellido = body.get("apellido", "").strip()
+        medallas = [m.strip() for m in body.get("medallas", "").split(",") if m.strip()]
+
+        if not nombre:
+            return jsonify({"ok": False, "data": None, "mensaje": "El nombre es obligatorio"})
+
+        idEntrenador = entrenador_dao.siguiente_id("ENT", "idEntrenador")
+        doc = {"idEntrenador": idEntrenador, "nombre": nombre,
+               "apellido": apellido, "medallas": medallas}
+        entrenador_dao.insertar(doc)
+        doc.pop("_id", None)
+        return jsonify({"ok": True, "data": doc,
+                        "mensaje": f"Entrenador {nombre} cargado con ID {idEntrenador}"})
+    except Exception as e:
+        return jsonify({"ok": False, "data": None, "mensaje": str(e)}), 500
+
+
+@app.route("/mongo/pokemons/nuevo", methods=["POST"])
+def mongo_nuevo_pokemon():
+    try:
+        body   = request.get_json()
+        nombre = body.get("nombre", "").strip()
+        nro    = body.get("nroPokedex")
+
+        if not nombre or nro is None:
+            return jsonify({"ok": False, "data": None,
+                            "mensaje": "nombre y especie son obligatorios"})
+
+        base = db["pokedex"].find_one({"nroPokedex": int(nro)})
+        if not base:
+            return jsonify({"ok": False, "data": None,
+                            "mensaje": "Especie no encontrada en la Pokédex"})
+
+        idPokemon = pokemon_dao.siguiente_id("POK", "idPokemon")
+        doc = {
+            "idPokemon": idPokemon,
+            "especie":   base["especie"],
+            "nombre":    nombre,
+            "peso":      round(base["peso"]   * random.uniform(0.9, 1.1), 2),
+            "altura":    round(base["altura"] * random.uniform(0.9, 1.1), 2),
+            "foto":      base.get("foto", ""),
+            "tipo":      base.get("tipo", []),
+        }
+        pokemon_dao.insertar(doc)
+        doc.pop("_id", None)
+        return jsonify({"ok": True, "data": doc,
+                        "mensaje": f"Pokémon {nombre} cargado con ID {idPokemon}"})
+    except Exception as e:
+        return jsonify({"ok": False, "data": None, "mensaje": str(e)}), 500
+
+
 if __name__ == "__main__":
     app.run(debug=True)

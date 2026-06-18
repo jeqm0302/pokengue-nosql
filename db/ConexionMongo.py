@@ -16,7 +16,7 @@ class ConexionMongo:
     def conectar(self):
         if self._cliente is None:
             uri = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-            nombre_db = os.getenv("MONGO_DB", "Pokengue")
+            nombre_db = os.getenv("MONGO_DB", "pokengue")
             try:
                 self._cliente = MongoClient(uri)
                 self._cliente.admin.command("ping")
