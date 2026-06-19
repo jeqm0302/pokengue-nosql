@@ -12,12 +12,12 @@ CREDENTIALS_FILE = "pokengueCredentials.json"
 
 
 def get_sheet_as_dicts(nombre_hoja):
-    """Lee la hoja como strings puros y devuelve lista de dicts."""
+    """Lee la hoja como strings puros y devuelve lista de dicts"""
     creds  = Credentials.from_service_account_file(CREDENTIALS_FILE, scopes=SCOPES)
     client = gspread.authorize(creds)
     sheet  = client.open_by_key(SPREADSHEET_ID).worksheet(nombre_hoja)
 
-    valores = sheet.get_all_values()  # todo como strings, sin conversión automática
+    valores = sheet.get_all_values()
     if not valores:
         return []
 
