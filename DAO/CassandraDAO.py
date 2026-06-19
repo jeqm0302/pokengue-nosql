@@ -1,4 +1,3 @@
-from uuid import uuid4
 from db.ConexionCassandra import ConexionCassandra
 from cassandra.query import BatchStatement
 from modelos.RegistroCombate import RegistroCombate
@@ -169,15 +168,36 @@ class CassandraDAO:
         self._sesion.execute("TRUNCATE registro_combates_por_jugador_1")
         self._sesion.execute("TRUNCATE registro_combates_por_jugador_2")
 
+    def _extraer_numero_id(self, combate_id):
+        if not isinstance(combate_id, str) or not combate_id.startswith("COM-"):
+            return None
+        try:
+            return int(combate_id.split("-", 1)[1])
+        except ValueError:
+            return None
+
+    def generar_nuevo_id(self):
+        filas = self._sesion.execute("SELECT combate_id FROM registro_combates")
+        max_num = 0
+        for fila in filas:
+            id_str = getattr(fila, "combate_id", None)
+            if id_str is None and hasattr(fila, "get"):
+                id_str = fila.get("combate_id")
+            num = self._extraer_numero_id(id_str)
+            if num is not None and num > max_num:
+                max_num = num
+        return f"COM-{max_num + 1:03d}"
+
     def cargar_masivo(self, lista_dicts):
         """
         Recibe lista de dicts con claves: fecha, hora, entrenador1, pokemon1,
-        resultado, entrenador2, pokemon2. Genera un UUID por cada combate.
+        resultado, entrenador2, pokemon2. Usa el id provisto si está presente.
         """
         procesados = 0
         for d in lista_dicts:
+            combate_id = d.get("id") or self.generar_nuevo_id()
             combate = RegistroCombate(
-                d.get("id", str(uuid4())), d["fecha"], d["hora"],
+                combate_id, d["fecha"], d["hora"],
                 d["entrenador1"], d["pokemon1"], d["resultado"],
                 d["entrenador2"], d["pokemon2"],
             )
@@ -186,6 +206,9 @@ class CassandraDAO:
         return procesados
 
     def listar_todos(self):
+        return self._sesion.execute("SELECT * FROM registro_combates")
+
+    def seleccionar_todos(self):
         return self._sesion.execute("SELECT * FROM registro_combates")
 
     def buscar_por_id(self, combate_id):

@@ -5,7 +5,6 @@ from services.Neo4jService import Neo4jService
 from DAO.CassandraDAO import CassandraDAO
 from DAO.RedisDAO import RedisDAO
 from modelos.RegistroCombate import RegistroCombate
-from uuid import uuid4
 from datetime import date, time
 from DAO.MongoDAO import EntrenadorDAO, PokemonDAO
 from bson import ObjectId
@@ -246,9 +245,23 @@ def cassandra_cargar():
 def cassandra_listar_todos():
     try:
         filas = list(cassandra_dao.listar_todos())
+        query = "SELECT * FROM registro_combates"
         return jsonify({"ok": True,
                         "data": [_combate_a_dict(f) for f in filas],
-                        "mensaje": f"Se encontraron {len(filas)} combates."})
+                        "mensaje": f"Se encontraron {len(filas)} combates.",
+                        "query": query})
+    except Exception as e:
+        return jsonify({"ok": False, "data": None, "mensaje": str(e)}), 500
+
+@app.route("/cassandra/registro_combates")
+def cassandra_registro_combates():
+    try:
+        filas = list(cassandra_dao.seleccionar_todos())
+        query = "SELECT * FROM registro_combates"
+        return jsonify({"ok": True,
+                        "data": [_combate_a_dict(f) for f in filas],
+                        "mensaje": f"Se encontraron {len(filas)} combates en registro_combates.",
+                        "query": query})
     except Exception as e:
         return jsonify({"ok": False, "data": None, "mensaje": str(e)}), 500
 
@@ -274,7 +287,7 @@ def cassandra_registrar_combate():
             return jsonify({"ok": False, "data": None,
                             "mensaje": "Formato de fecha u hora inválido. Usa YYYY-MM-DD y HH:MM."}), 400
 
-        combate_id = uuid4()
+        combate_id = cassandra_dao.generar_nuevo_id()
         combate = RegistroCombate(
             combate_id, fecha_combate, hora_combate,
             entrenador1, pokemon1, resultado,
@@ -295,8 +308,10 @@ def cassandra_buscar_por_id(combate_id):
         if fila is None:
             return jsonify({"ok": False, "data": None,
                             "mensaje": f"No se encontró combate con id {combate_id}."}), 404
+        query = f"SELECT * FROM registro_combates WHERE combate_id = '{combate_id}'"
         return jsonify({"ok": True, "data": _combate_a_dict(fila),
-                        "mensaje": "Combate encontrado."})
+                        "mensaje": "Combate encontrado.",
+                        "query": query})
     except Exception as e:
         return jsonify({"ok": False, "data": None,
                         "mensaje": str(e)}), 500
@@ -310,9 +325,11 @@ def cassandra_buscar_por_fecha():
                             "mensaje": "Debés indicar una fecha como YYYY-MM-DD."}), 400
         fecha_combate = date.fromisoformat(fecha_texto)
         filas = list(cassandra_dao.buscar_por_fecha(fecha_combate))
+        query = f"SELECT * FROM registro_combates_por_fecha WHERE fecha = '{fecha_texto}'"
         return jsonify({"ok": True,
                         "data": [_combate_a_dict(f) for f in filas],
-                        "mensaje": f"Se encontraron {len(filas)} combates en {fecha_texto}."})
+                        "mensaje": f"Se encontraron {len(filas)} combates en {fecha_texto}.",
+                        "query": query})
     except ValueError:
         return jsonify({"ok": False, "data": None,
                         "mensaje": "Formato de fecha inválido. Usa YYYY-MM-DD."}), 400
@@ -324,9 +341,11 @@ def cassandra_buscar_por_fecha():
 def cassandra_buscar_por_jugador1(jugador):
     try:
         filas = list(cassandra_dao.buscar_por_jugador1(jugador))
+        query = f"SELECT * FROM registro_combates_por_jugador_1 WHERE entrenador1 = '{jugador}'"
         return jsonify({"ok": True,
                         "data": [_combate_a_dict(f) for f in filas],
-                        "mensaje": f"Se encontraron {len(filas)} combates para {jugador}."})
+                        "mensaje": f"Se encontraron {len(filas)} combates para {jugador}.",
+                        "query": query})
     except Exception as e:
         return jsonify({"ok": False, "data": None,
                         "mensaje": str(e)}), 500
@@ -335,9 +354,11 @@ def cassandra_buscar_por_jugador1(jugador):
 def cassandra_buscar_por_jugador2(jugador):
     try:
         filas = list(cassandra_dao.buscar_por_jugador2(jugador))
+        query = f"SELECT * FROM registro_combates_por_jugador_2 WHERE entrenador2 = '{jugador}'"
         return jsonify({"ok": True,
                         "data": [_combate_a_dict(f) for f in filas],
-                        "mensaje": f"Se encontraron {len(filas)} combates para {jugador}."})
+                        "mensaje": f"Se encontraron {len(filas)} combates para {jugador}.",
+                        "query": query})
     except Exception as e:
         return jsonify({"ok": False, "data": None,
                         "mensaje": str(e)}), 500

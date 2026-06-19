@@ -222,8 +222,8 @@
           <label for="resultadoInput">Resultado</label>
           <select id="resultadoInput" required>
             <option value="">-- Selecciona un resultado --</option>
-            <option value="Ganador J1">Ganador J1</option>
-            <option value="Ganador J2">Ganador J2</option>
+            <option value="Victoria J1">Victoria J1</option>
+            <option value="Victoria J2">Victoria J2</option>
           </select>
           <button type="submit">REGISTRAR COMBATE</button>
         </form>
@@ -233,6 +233,7 @@
         <div class="col-title">▸ CONSULTAS</div>
         <h3>📋 Ver todos los combates</h3>
         <button type="button" onclick="listarTodos()">VER TODOS</button>
+        <button type="button" onclick="listarRegistroCombate()" style="margin-left:0.5rem;">VER REGISTRO_COMBATE</button>
 
         <h3 style="margin-top:1rem;">🔎 Buscar combate por ID</h3>
         <form onsubmit="buscarPorId(event)">
@@ -314,7 +315,7 @@
         const resp = await fetch(`/cassandra/combate/${encodeURIComponent(id)}`);
         const r = await resp.json();
         if (!r.ok) return mostrarError(r.mensaje);
-        mostrar(combateHtml(r.data));
+        mostrarConQuery(combateHtml(r.data), r.query || "");
       } catch (e) { mostrarError("No se pudo conectar con el servidor."); }
     }
 
@@ -325,7 +326,8 @@
         const resp = await fetch(`/cassandra/fecha?fecha=${encodeURIComponent(fecha)}`);
         const r = await resp.json();
         if (!r.ok) return mostrarError(r.mensaje);
-        mostrar(r.data.length === 0 ? `<div class="muted">No hay combates en esa fecha.</div>` : r.data.map(combateHtml).join(""));
+        const contenido = r.data.length === 0 ? `<div class="muted">No hay combates en esa fecha.</div>` : r.data.map(combateHtml).join("");
+        mostrarConQuery(contenido, r.query || "");
       } catch (e) { mostrarError("No se pudo conectar con el servidor."); }
     }
 
@@ -336,7 +338,8 @@
         const resp = await fetch(`/cassandra/jugador1/${encodeURIComponent(jugador)}`);
         const r = await resp.json();
         if (!r.ok) return mostrarError(r.mensaje);
-        mostrar(r.data.length === 0 ? `<div class="muted">No se encontraron combates para ${esc(jugador)}.</div>` : r.data.map(combateHtml).join(""));
+        const contenido = r.data.length === 0 ? `<div class="muted">No se encontraron combates para ${esc(jugador)}.</div>` : r.data.map(combateHtml).join("");
+        mostrarConQuery(contenido, r.query || "");
       } catch (e) { mostrarError("No se pudo conectar con el servidor."); }
     }
 
@@ -347,7 +350,8 @@
         const resp = await fetch(`/cassandra/jugador2/${encodeURIComponent(jugador)}`);
         const r = await resp.json();
         if (!r.ok) return mostrarError(r.mensaje);
-        mostrar(r.data.length === 0 ? `<div class="muted">No se encontraron combates para ${esc(jugador)}.</div>` : r.data.map(combateHtml).join(""));
+        const contenido = r.data.length === 0 ? `<div class="muted">No se encontraron combates para ${esc(jugador)}.</div>` : r.data.map(combateHtml).join("");
+        mostrarConQuery(contenido, r.query || "");
       } catch (e) { mostrarError("No se pudo conectar con el servidor."); }
     }
 
@@ -361,14 +365,31 @@
       } catch (e) { mostrarError("No se pudo conectar con el servidor."); }
     }
 
+    function mostrarConQuery(html, query) {
+      mostrar(html + `<div class="hint">Consulta: <code>${esc(query)}</code></div>`);
+    }
+
     async function listarTodos() {
       try {
         const resp = await fetch("/cassandra/combates");
         const r = await resp.json();
         if (!r.ok) return mostrarError(r.mensaje);
-        mostrar(r.data.length === 0
+        const contenido = r.data.length === 0
           ? `<div class="muted">No hay combates registrados.</div>`
-          : `<div class="ok-line" style="margin-bottom:0.5rem;">📋 ${r.data.length} combate(s) encontrado(s)</div>` + r.data.map(combateHtml).join(""));
+          : `<div class="ok-line" style="margin-bottom:0.5rem;">📋 ${r.data.length} combate(s) encontrado(s)</div>` + r.data.map(combateHtml).join("");
+        mostrarConQuery(contenido, r.query || "");
+      } catch (e) { mostrarError("No se pudo conectar con el servidor."); }
+    }
+
+    async function listarRegistroCombate() {
+      try {
+        const resp = await fetch("/cassandra/registro_combates");
+        const r = await resp.json();
+        if (!r.ok) return mostrarError(r.mensaje);
+        const contenido = r.data.length === 0
+          ? `<div class="muted">No hay combates en registro_combates.</div>`
+          : `<div class="ok-line" style="margin-bottom:0.5rem;">📋 ${r.data.length} combate(s) encontrado(s) en registro_combates</div>` + r.data.map(combateHtml).join("");
+        mostrarConQuery(contenido, r.query || "");
       } catch (e) { mostrarError("No se pudo conectar con el servidor."); }
     }
 
