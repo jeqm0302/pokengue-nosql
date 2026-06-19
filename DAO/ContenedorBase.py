@@ -21,6 +21,7 @@ class ContenedorBase:
         self._db["counters"].update_one(
             {"_id": nombre, "seq": {"$lt": max_num}},
             {"$set": {"seq": max_num}},
+            upsert=True,
         )
 
         resultado = self._db["counters"].find_one_and_update(
