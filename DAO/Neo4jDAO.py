@@ -145,10 +145,10 @@ class Neo4jDAO:
 
     def contar_estado_general(self):
         consulta = """
-        CALL { MATCH (e:Entrenador) RETURN count(e) AS entrenadores }
-        CALL { MATCH (p:Pokemon) RETURN count(p) AS pokemons }
-        CALL { MATCH ()-[r:TIENE]->() RETURN count(r) AS tiene }
-        CALL { MATCH ()-[r:ES_AMIGO_DE]->() RETURN count(r) AS amistades }
+        CALL () { MATCH (e:Entrenador) RETURN count(e) AS entrenadores }
+        CALL () { MATCH (p:Pokemon) RETURN count(p) AS pokemons }
+        CALL () { MATCH ()-[r:TIENE]->() RETURN count(r) AS tiene }
+        CALL () { MATCH ()-[r:ES_AMIGO_DE]->() RETURN count(r) AS amistades }
         RETURN entrenadores, pokemons, tiene, amistades
         """
         with self.conn.obtener_session() as sesion:

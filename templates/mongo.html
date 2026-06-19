@@ -221,6 +221,20 @@
     #resultado::-webkit-scrollbar-thumb { background: var(--green); border-radius: 4px; }
 
     .placeholder { color: #777; font-style: italic; }
+    .hint {
+      margin-top: 0.8rem;
+      padding: 0.45rem 0.7rem;
+      background: rgba(34,197,94,0.07);
+      border: 1px solid rgba(34,197,94,0.25);
+      border-radius: 6px;
+      font-size: 0.75rem;
+      color: #aaa;
+    }
+    .hint code {
+      color: var(--green);
+      font-family: monospace;
+      font-size: 0.8rem;
+    }
     .ok-line  { color: var(--ok);  font-weight: 700; }
     .err-line { color: var(--err); font-weight: 700; }
     .section-h { color: var(--yellow); font-weight: 700; margin-top: 0.6rem; display: block; }
@@ -552,9 +566,10 @@ function cambiarTab(tab) {
   if (tab === 'cargar' && todasLasEspecies.length === 0) cargarEspecies();
 }
 
-function mostrar(tipo, html) {
+function mostrar(tipo, html, query) {
   const caja = document.getElementById(`resultado-${tipo === 'entrenador' ? 'entrenadores' : 'pokemons'}`);
-  caja.innerHTML = html;
+  const queryHtml = query ? `<div class="hint">Consulta: <code>${esc(query)}</code></div>` : '';
+  caja.innerHTML = html + queryHtml;
   caja.scrollTop = 0;
 }
 
@@ -763,8 +778,8 @@ async function buscar(tipo, filtro) {
     const resp = await fetch(url);
     const r = await resp.json();
     if (!r.ok) return mostrarError(tipo, r.mensaje);
-    if (tipo === "entrenador") mostrar(tipo, renderEntrenadores(r.data));
-    else                       mostrar(tipo, renderPokemons(r.data));
+    if (tipo === "entrenador") mostrar(tipo, renderEntrenadores(r.data), r.query);
+    else                       mostrar(tipo, renderPokemons(r.data), r.query);
   } catch(e) {
     mostrarError(tipo, "No se pudo conectar con el servidor");
   }

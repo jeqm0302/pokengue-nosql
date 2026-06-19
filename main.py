@@ -53,14 +53,23 @@ def mongo_entrenadores():
         if id_ent:
             resultado = entrenador_dao.buscar_por_id(id_ent)
             data = _limpiar([resultado]) if resultado else []
+            query = f'db.entrenador.findOne({{"idEntrenador": "{id_ent}"}})'
         elif nombre or apellido:
             data = _limpiar(entrenador_dao.buscar_por_nombre(nombre, apellido))
+            partes = []
+            if nombre:
+                partes.append(f'"nombre": {{"$regex": "{nombre}", "$options": "i"}}')
+            if apellido:
+                partes.append(f'"apellido": {{"$regex": "{apellido}", "$options": "i"}}')
+            query = f'db.entrenador.find({{{", ".join(partes)}}})'
         elif medalla:
             data = _limpiar(entrenador_dao.buscar_por_medalla(medalla))
+            query = f'db.entrenador.find({{"medallas": {{"$regex": "{medalla}", "$options": "i"}}}})'
         else:
             data = _limpiar(entrenador_dao.listar_todos())
+            query = 'db.entrenador.find({})'
 
-        return jsonify({"ok": True, "data": data, "mensaje": f"{len(data)} resultado(s)"})
+        return jsonify({"ok": True, "data": data, "mensaje": f"{len(data)} resultado(s)", "query": query})
     except Exception as e:
         return jsonify({"ok": False, "data": None, "mensaje": str(e)}), 500
 
@@ -79,22 +88,38 @@ def mongo_pokemons():
         if id_pok:
             resultado = pokemon_dao.buscar_por_id(id_pok)
             data = _limpiar([resultado]) if resultado else []
+            query = f'db.pokemons.findOne({{"idPokemon": "{id_pok}"}})'
         elif nombre:
             data = _limpiar(pokemon_dao.buscar_por_nombre(nombre))
+            query = f'db.pokemons.find({{"$or": [{{"nombre": {{"$regex": "{nombre}", "$options": "i"}}}}, {{"especie": {{"$regex": "{nombre}", "$options": "i"}}}}]}})'
         elif tipo:
             data = _limpiar(pokemon_dao.buscar_por_tipo(tipo))
+            query = f'db.pokemons.find({{"tipo": {{"$regex": "{tipo}", "$options": "i"}}}})'
         elif peso_min or peso_max:
             mn = float(peso_min) if peso_min else None
             mx = float(peso_max) if peso_max else None
             data = _limpiar(pokemon_dao.buscar_por_peso(mn, mx))
+            partes = []
+            if mn is not None:
+                partes.append(f'"$gte": {mn}')
+            if mx is not None:
+                partes.append(f'"$lte": {mx}')
+            query = f'db.pokemons.find({{"peso": {{{", ".join(partes)}}}}})'
         elif altura_min or altura_max:
             mn = float(altura_min) if altura_min else None
             mx = float(altura_max) if altura_max else None
             data = _limpiar(pokemon_dao.buscar_por_altura(mn, mx))
+            partes = []
+            if mn is not None:
+                partes.append(f'"$gte": {mn}')
+            if mx is not None:
+                partes.append(f'"$lte": {mx}')
+            query = f'db.pokemons.find({{"altura": {{{", ".join(partes)}}}}})'
         else:
             data = _limpiar(pokemon_dao.listar_todos())
+            query = 'db.pokemons.find({})'
 
-        return jsonify({"ok": True, "data": data, "mensaje": f"{len(data)} resultado(s)"})
+        return jsonify({"ok": True, "data": data, "mensaje": f"{len(data)} resultado(s)", "query": query})
     except Exception as e:
         return jsonify({"ok": False, "data": None, "mensaje": str(e)}), 500
 
